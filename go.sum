@@ -22,6 +22,8 @@ github.com/mannkind/litterrobot v0.1.0 h1:fGCzIGvFiE6iq97lYvb5ze/uEGDVlsxhHJ8t6A
 github.com/mannkind/litterrobot v0.1.0/go.mod h1:lt2vPM3HUIgiAuxL/Mh5nvYs2KmSEguQUxZLfXm3Sog=
 github.com/mannkind/litterrobot v0.1.1 h1:xuRbitUCHckoIskf99K2FALyYlNDGzTjbZ7pBNWkpzE=
 github.com/mannkind/litterrobot v0.1.1/go.mod h1:lt2vPM3HUIgiAuxL/Mh5nvYs2KmSEguQUxZLfXm3Sog=
+github.com/mannkind/litterrobot v0.1.2 h1:YUm+ILLgPKwE+y8JRjuqo2S+ynbvK2FvpCFr1Axebxs=
+github.com/mannkind/litterrobot v0.1.2/go.mod h1:lt2vPM3HUIgiAuxL/Mh5nvYs2KmSEguQUxZLfXm3Sog=
 github.com/mannkind/paho.mqtt.golang.ext v0.2.1 h1:KQEN3NyeKGknCg31Z5Cn200Yl271/BUKJPjOlGeQYtc=
 github.com/mannkind/paho.mqtt.golang.ext v0.2.1/go.mod h1:oU6yBf2os2KIejFve/xxOned6+nDhpFUiiYuEFbtPGU=
 github.com/mattn/go-colorable v0.1.1/go.mod h1:FuOcm+DKB9mbwrcAfNl7/TZVBZ6rcnceauSikq3lYCQ=
