@@ -34,7 +34,7 @@ type mqttClient struct {
 	lastPublished map[string]string
 }
 
-func newMQTTClient(config *config, mqttFuncWrapper *mqttExtDI.MQTTFuncWrapper) *mqttClient {
+func newMQTTClient(config *config, mqttFuncWrapper mqttExtDI.MQTTFuncWrapper) *mqttClient {
 	c := mqttClient{
 		observers:       map[observer]struct{}{},
 		discovery:       config.MQTT.Discovery,
@@ -73,17 +73,12 @@ func newMQTTClient(config *config, mqttFuncWrapper *mqttExtDI.MQTTFuncWrapper) *
 		"CCC": "Cycle complete",
 	}
 
-	opts := mqttFuncWrapper.
-		ClientOptsFunc().
-		AddBroker(config.MQTT.Broker).
-		SetClientID(config.MQTT.ClientID).
-		SetOnConnectHandler(c.onConnect).
-		SetConnectionLostHandler(c.onDisconnect).
-		SetUsername(config.MQTT.Username).
-		SetPassword(config.MQTT.Password).
-		SetWill(c.availabilityTopic(), "offline", 0, true)
-
-	c.client = mqttFuncWrapper.ClientFunc(opts)
+	c.client = mqttFuncWrapper(
+		config.MQTT,
+		c.onConnect,
+		c.onDisconnect,
+		"",
+	)
 
 	return &c
 }
