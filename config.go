@@ -22,26 +22,10 @@ type config struct {
 func newConfig(mqttCfg *mqttExtCfg.MQTTConfig) *config {
 	c := config{}
 	c.MQTT = mqttCfg
-
-	if c.MQTT.ClientID == "" {
-		c.MQTT.ClientID = "DefaultLitterRobot2MQTTClientID"
-	}
-
-	if c.MQTT.DiscoveryName == "" {
-		c.MQTT.DiscoveryName = "litterrobot"
-	}
-
-	if c.MQTT.TopicPrefix == "" {
-		c.MQTT.TopicPrefix = "home/litterrobot"
-	}
+	c.MQTT.Defaults("DefaultLitterRobot2MQTTClientID", "litterrobot", "home/litterrobot")
 
 	if err := env.Parse(&c); err != nil {
 		log.Printf("Error unmarshaling configuration: %s", err)
-	}
-
-	redactedPassword := ""
-	if len(c.MQTT.Password) > 0 {
-		redactedPassword = "<REDACTED>"
 	}
 
 	redactedAPIPassword := ""
@@ -50,14 +34,6 @@ func newConfig(mqttCfg *mqttExtCfg.MQTTConfig) *config {
 	}
 
 	log.WithFields(log.Fields{
-		"MQTT.ClientID":                 c.MQTT.ClientID,
-		"MQTT.Broker":                   c.MQTT.Broker,
-		"MQTT.Username":                 c.MQTT.Username,
-		"MQTT.Password":                 redactedPassword,
-		"MQTT.Discovery":                c.MQTT.Discovery,
-		"MQTT.DiscoveryPrefix":          c.MQTT.DiscoveryPrefix,
-		"MQTT.DiscoveryName":            c.MQTT.DiscoveryName,
-		"MQTT.TopicPrefix":              c.MQTT.TopicPrefix,
 		"LitterRobot.Local":             c.Local,
 		"LitterRobot.KnownRobots":       c.KnownRobots,
 		"LitterRobot.DebugLogLevel":     c.DebugLogLevel,
