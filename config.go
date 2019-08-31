@@ -1,51 +1,53 @@
 package main
 
 import (
-	"time"
+	"reflect"
 
-	"github.com/caarlos0/env"
-	mqttExtCfg "github.com/mannkind/paho.mqtt.golang.ext/cfg"
+	"github.com/caarlos0/env/v6"
+	"github.com/mannkind/twomqtt"
 	log "github.com/sirupsen/logrus"
 )
 
 type config struct {
-	MQTT           *mqttExtCfg.MQTTConfig
-	Local          bool          `env:"LITTERROBOT_LOCAL" envDefault:"false"`
-	Email          string        `env:"LITTERROBOT_EMAIL" envDefault:""`
-	Password       string        `env:"LITTERROBOT_PASSWORD" envDefault:""`
-	APIKey         string        `env:"LITTERROBOT_APIKEY" envDefault:"Gmdfw5Cq3F3Mk6xvvO0inHATJeoDv6C3KfwfOuh0"`
-	KnownRobots    []string      `env:"LITTERROBOT_KNOWN" envDefault:""`
-	LookupInterval time.Duration `env:"LITTERROBOT_LOOKUPINTERVAL" envDefault:"37s"`
-	DebugLogLevel  bool          `env:"LITTERROBOT_DEBUG" envDefault:"false"`
+	GeneralConfig       twomqtt.GeneralConfig
+	GlobalClientConfig  globalClientConfig
+	MQTTClientConfig    mqttClientConfig
+	ServiceClientConfig serviceClientConfig
 }
 
-func newConfig(mqttCfg *mqttExtCfg.MQTTConfig) *config {
-	c := config{}
-	c.MQTT = mqttCfg
-	c.MQTT.Defaults("DefaultLitterRobot2MQTTClientID", "litterrobot", "home/litterrobot")
-
-	if err := env.Parse(&c); err != nil {
-		log.Printf("Error unmarshaling configuration: %s", err)
+func newConfig() config {
+	c := config{
+		GeneralConfig:       twomqtt.GeneralConfig{},
+		GlobalClientConfig:  globalClientConfig{},
+		MQTTClientConfig:    mqttClientConfig{},
+		ServiceClientConfig: serviceClientConfig{},
 	}
 
-	redactedAPIPassword := ""
-	if len(c.Password) > 0 {
-		redactedAPIPassword = "<REDACTED>"
+	// Manually parse the address:name mapping
+	if err := env.ParseWithFuncs(&c, map[reflect.Type]env.ParserFunc{
+		reflect.TypeOf(knownRobots{}): twomqtt.SimpleKVMapParser(":", ","),
+	}); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Unable to unmarshal configuration")
 	}
 
-	log.WithFields(log.Fields{
-		"LitterRobot.Local":             c.Local,
-		"LitterRobot.KnownRobots":       c.KnownRobots,
-		"LitterRobot.DebugLogLevel":     c.DebugLogLevel,
-		"LitterRobotAPI.Email":          c.Email,
-		"LitterRobotAPI.Password":       redactedAPIPassword,
-		"LitterRobotAPI.LookupInterval": c.LookupInterval,
-	}).Info("Environmental Settings")
+	// Defaults
+	if c.MQTTClientConfig.MQTTProxyConfig.DiscoveryName == "" {
+		c.MQTTClientConfig.MQTTProxyConfig.DiscoveryName = "litterrobot"
+	}
 
-	if c.DebugLogLevel {
+	if c.MQTTClientConfig.MQTTProxyConfig.TopicPrefix == "" {
+		c.MQTTClientConfig.MQTTProxyConfig.TopicPrefix = "home/litterrobot"
+	}
+
+	// env.Parse* does not seem to work with embedded structs
+	c.MQTTClientConfig.KnownRobots = c.GlobalClientConfig.KnownRobots
+	c.ServiceClientConfig.KnownRobots = c.GlobalClientConfig.KnownRobots
+
+	if c.GeneralConfig.DebugLogLevel {
 		log.SetLevel(log.DebugLevel)
-		log.Debug("Enabling the debug log level")
 	}
 
-	return &c
+	return c
 }

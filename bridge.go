@@ -1,23 +1,23 @@
 package main
 
 type bridge struct {
-	mqttClient *mqttClient
-	client     *client
+	mqttClient    *mqttClient
+	serviceClient *serviceClient
 }
 
-func newBridge(config *config, mqttClient *mqttClient, client *client) *bridge {
+func newBridge(mqttClient *mqttClient, serviceClient *serviceClient) *bridge {
 	bridge := bridge{
-		mqttClient: mqttClient,
-		client:     client,
+		mqttClient:    mqttClient,
+		serviceClient: serviceClient,
 	}
 
 	return &bridge
 }
 
 func (b *bridge) run() {
-	b.mqttClient.register(b.client)
-	b.client.register(b.mqttClient)
+	b.mqttClient.Register(b.serviceClient)
+	b.serviceClient.Register(b.mqttClient)
 
 	b.mqttClient.run()
-	b.client.run()
+	b.serviceClient.run()
 }
