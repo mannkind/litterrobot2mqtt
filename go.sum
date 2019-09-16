@@ -19,6 +19,8 @@ github.com/mannkind/litterrobot v0.2.0 h1:TLFoqdYugRPiWm3+wSkTSvJRMZJcTqRRI6YQMV
 github.com/mannkind/litterrobot v0.2.0/go.mod h1:lt2vPM3HUIgiAuxL/Mh5nvYs2KmSEguQUxZLfXm3Sog=
 github.com/mannkind/twomqtt v0.1.0 h1:FheIkPMkExcPoTXNVsRlSOn3M1XMhs5hvrbo8oTvqk4=
 github.com/mannkind/twomqtt v0.1.0/go.mod h1:Dj5c1nQlMU2a0L63jg6Uoj/LpUYnfKNKplaCBzDyQQM=
+github.com/mannkind/twomqtt v0.2.0 h1:fwqgo6vCJ2kwjBCESxvmql6Ey4oDTq/Zsv88HpBxTSM=
+github.com/mannkind/twomqtt v0.2.0/go.mod h1:Dj5c1nQlMU2a0L63jg6Uoj/LpUYnfKNKplaCBzDyQQM=
 github.com/mattn/go-colorable v0.1.1/go.mod h1:FuOcm+DKB9mbwrcAfNl7/TZVBZ6rcnceauSikq3lYCQ=
 github.com/mattn/go-colorable v0.1.2/go.mod h1:U0ppj6V5qS13XJ6of8GYAs25YV2eR4EVcfRqFIhoBtE=
 github.com/mattn/go-isatty v0.0.5/go.mod h1:Iq45c/XA43vh69/j3iqttzPXn0bhXyGjM0Hdxcsrc5s=
