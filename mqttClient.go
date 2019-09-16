@@ -25,10 +25,10 @@ var statusMapping = map[string]string{
 }
 
 type mqttClient struct {
-	twomqtt.Observer
+	twomqtt.StateObserver
+	twomqtt.CommandPublisher
 	*twomqtt.MQTTProxy
 	mqttClientConfig
-	observers map[twomqtt.Observer]struct{}
 	lastState map[string]litterRobotState
 }
 
@@ -36,7 +36,6 @@ func newMQTTClient(mqttClientCfg mqttClientConfig, client *twomqtt.MQTTProxy) *m
 	c := mqttClient{
 		MQTTProxy:        client,
 		mqttClientConfig: mqttClientCfg,
-		observers:        map[twomqtt.Observer]struct{}{},
 		lastState:        map[string]litterRobotState{},
 	}
 
@@ -55,10 +54,6 @@ func newMQTTClient(mqttClientCfg mqttClientConfig, client *twomqtt.MQTTProxy) *m
 	}
 
 	return &c
-}
-
-func (c *mqttClient) Register(l twomqtt.Observer) {
-	c.observers[l] = struct{}{}
 }
 
 func (c *mqttClient) run() {
@@ -102,7 +97,6 @@ func (c *mqttClient) subscribe() {
 	}
 }
 
-func (c *mqttClient) ReceiveCommand(cmd twomqtt.Command, e twomqtt.Event) {}
 func (c *mqttClient) ReceiveState(e twomqtt.Event) {
 	if e.Type != reflect.TypeOf(litterRobotState{}) {
 		msg := "Unexpected event type; skipping"
@@ -220,12 +214,6 @@ func (c *mqttClient) publishDiscovery() {
 	log.Info("Finished publishing MQTT Discovery")
 }
 
-func (c *mqttClient) sendCommand(cmd twomqtt.Command, e twomqtt.Event) {
-	for o := range c.observers {
-		o.ReceiveCommand(cmd, e)
-	}
-}
-
 func (c *mqttClient) commandPower(client mqtt.Client, msg mqtt.Message) {
 	payload := strings.ToUpper(string(msg.Payload()))
 	cmd := cmdPowerOff
@@ -239,7 +227,7 @@ func (c *mqttClient) commandPower(client mqtt.Client, msg mqtt.Message) {
 	if err != nil {
 		return
 	}
-	c.sendCommand(cmd, event)
+	c.SendCommand(cmd, event)
 
 	serial := c.parseSerialFromTopic(msg.Topic())
 	state := litterRobotState(c.lastState[serial])
@@ -261,7 +249,7 @@ func (c *mqttClient) commandCycle(client mqtt.Client, msg mqtt.Message) {
 	if err != nil {
 		return
 	}
-	c.sendCommand(cmd, event)
+	c.SendCommand(cmd, event)
 
 	serial := c.parseSerialFromTopic(msg.Topic())
 	state := litterRobotState(c.lastState[serial])
@@ -284,7 +272,7 @@ func (c *mqttClient) commandNightLight(client mqtt.Client, msg mqtt.Message) {
 	if err != nil {
 		return
 	}
-	c.sendCommand(cmd, event)
+	c.SendCommand(cmd, event)
 
 	serial := c.parseSerialFromTopic(msg.Topic())
 	state := litterRobotState(c.lastState[serial])
@@ -310,7 +298,7 @@ func (c *mqttClient) commandPanelLock(client mqtt.Client, msg mqtt.Message) {
 	if err != nil {
 		return
 	}
-	c.sendCommand(cmd, event)
+	c.SendCommand(cmd, event)
 
 	serial := c.parseSerialFromTopic(msg.Topic())
 	state := litterRobotState(c.lastState[serial])

@@ -11,18 +11,16 @@ import (
 )
 
 type serviceClient struct {
-	twomqtt.Observer
-	twomqtt.Publisher
+	twomqtt.CommandObserver
+	twomqtt.StatePublisher
 	serviceClientConfig
-	observers map[twomqtt.Observer]struct{}
-	lr        *litterrobot.Client
-	state     litterRobotState
+	lr    *litterrobot.Client
+	state litterRobotState
 }
 
 func newServiceClient(serviceClientCfg serviceClientConfig) *serviceClient {
 	c := serviceClient{
 		serviceClientConfig: serviceClientCfg,
-		observers:           map[twomqtt.Observer]struct{}{},
 		lr:                  litterrobot.NewClient(serviceClientCfg.Local, serviceClientCfg.Email, serviceClientCfg.Password, serviceClientCfg.APIKey),
 	}
 
@@ -40,10 +38,6 @@ func newServiceClient(serviceClientCfg serviceClientConfig) *serviceClient {
 	}).Info("Service Environmental Settings")
 
 	return &c
-}
-
-func (c *serviceClient) Register(l twomqtt.Observer) {
-	c.observers[l] = struct{}{}
 }
 
 func (c *serviceClient) ReceiveLitterRobotState(e litterrobot.LREvent) {
@@ -95,10 +89,9 @@ func (c *serviceClient) ReceiveLitterRobotState(e litterrobot.LREvent) {
 	}
 
 	log.Info("Finished receiving state from Litter Robot")
-	c.sendState(event)
+	c.SendState(event)
 }
 
-func (c *serviceClient) ReceiveState(e twomqtt.Event) {}
 func (c *serviceClient) ReceiveCommand(cmd twomqtt.Command, e twomqtt.Event) {
 	if e.Type != reflect.TypeOf(litterRobotState{}) {
 		msg := "Unexpected event type; skipping"
@@ -132,18 +125,6 @@ func (c *serviceClient) ReceiveCommand(cmd twomqtt.Command, e twomqtt.Event) {
 	}
 
 	log.Info("Finished receiving command to handle")
-}
-
-func (c *serviceClient) sendState(e twomqtt.Event) {
-	log.WithFields(log.Fields{
-		"Event": e,
-	}).Debug("Sending event to observers")
-
-	for o := range c.observers {
-		o.ReceiveState(e)
-	}
-
-	log.Debug("Finished sending event to observers")
 }
 
 func (c *serviceClient) adapt(obj litterRobotState) (twomqtt.Event, error) {
