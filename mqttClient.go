@@ -11,6 +11,7 @@ import (
 
 var statusMapping = map[string]string{
 	"RDY": "Ready",
+	"Rdy": "Ready",
 	"OFF": "Off",
 	"P":   "Paused",
 	"BR":  "Bonnet removed",
@@ -25,18 +26,20 @@ var statusMapping = map[string]string{
 }
 
 type mqttClient struct {
-	twomqtt.StateObserver
-	twomqtt.CommandPublisher
-	*twomqtt.MQTTProxy
 	mqttClientConfig
-	lastState map[string]litterRobotState
+	*twomqtt.MQTTProxy
+	stateUpdateChan   stateChannel
+	commandUpdateChan commandChannel
+	lastState         map[string]litterRobotState
 }
 
-func newMQTTClient(mqttClientCfg mqttClientConfig, client *twomqtt.MQTTProxy) *mqttClient {
+func newMQTTClient(mqttClientCfg mqttClientConfig, client *twomqtt.MQTTProxy, stateUpdateChan stateChannel, commandUpdateChan commandChannel) *mqttClient {
 	c := mqttClient{
-		MQTTProxy:        client,
-		mqttClientConfig: mqttClientCfg,
-		lastState:        map[string]litterRobotState{},
+		mqttClientConfig:  mqttClientCfg,
+		MQTTProxy:         client,
+		stateUpdateChan:   stateUpdateChan,
+		commandUpdateChan: commandUpdateChan,
+		lastState:         map[string]litterRobotState{},
 	}
 
 	c.Initialize(
@@ -46,10 +49,10 @@ func newMQTTClient(mqttClientCfg mqttClientConfig, client *twomqtt.MQTTProxy) *m
 
 	c.LogSettings()
 
-	for serial, id := range c.KnownRobots {
-		c.lastState[serial] = litterRobotState{
-			LitterRobotSerial: serial,
-			LitterRobotID:     id,
+	// Setup last known states for known robots
+	for id := range c.KnownRobots {
+		c.lastState[id] = litterRobotState{
+			LitterRobotID: id,
 		}
 	}
 
@@ -58,6 +61,7 @@ func newMQTTClient(mqttClientCfg mqttClientConfig, client *twomqtt.MQTTProxy) *m
 
 func (c *mqttClient) run() {
 	c.Run()
+	go c.receive()
 }
 
 func (c *mqttClient) onConnect(client mqtt.Client) {
@@ -97,17 +101,13 @@ func (c *mqttClient) subscribe() {
 	}
 }
 
-func (c *mqttClient) ReceiveState(e twomqtt.Event) {
-	if e.Type != reflect.TypeOf(litterRobotState{}) {
-		msg := "Unexpected event type; skipping"
-		log.WithFields(log.Fields{
-			"type": e.Type,
-		}).Error(msg)
-		return
+func (c *mqttClient) receive() {
+	for info := range c.stateUpdateChan {
+		c.receiveState(info)
 	}
+}
 
-	info := e.Payload.(litterRobotState)
-
+func (c *mqttClient) receiveState(info litterRobotState) {
 	log.WithFields(log.Fields{
 		"info": info,
 	}).Info("Information Received")
@@ -157,10 +157,10 @@ func (c *mqttClient) updateState(info litterRobotState) {
 		c.Publish(topic, payload)
 	}
 
-	if _, ok := c.KnownRobots[info.LitterRobotSerial]; !ok {
+	if _, ok := c.KnownRobots[info.LitterRobotID]; !ok {
 		log.WithFields(log.Fields{
-			"serial":     info.LitterRobotSerial,
 			"identifier": info.LitterRobotID,
+			"name":       info.NameOrIP,
 		}).Warn("NEW LITTER ROBOT FOUND")
 	}
 	c.lastState[info.LitterRobotSerial] = info
@@ -221,15 +221,22 @@ func (c *mqttClient) commandPower(client mqtt.Client, msg mqtt.Message) {
 		cmd = cmdPowerOn
 	}
 
-	event, err := c.adapt(litterRobotState{
+	obj, err := c.adapt(litterRobotState{
 		LitterRobotID: c.parseIdentifierFromTopic(msg.Topic()),
 	})
 	if err != nil {
 		return
 	}
-	c.SendCommand(cmd, event)
 
-	serial := c.parseSerialFromTopic(msg.Topic())
+	c.commandUpdateChan <- struct {
+		Command int64
+		State   litterRobotState
+	}{
+		cmd,
+		obj,
+	}
+
+	serial := c.parseIdentifierFromTopic(msg.Topic())
 	state := litterRobotState(c.lastState[serial])
 	if cmd == cmdPowerOff {
 		state.UnitStatus = "OFF"
@@ -243,15 +250,22 @@ func (c *mqttClient) commandPower(client mqtt.Client, msg mqtt.Message) {
 func (c *mqttClient) commandCycle(client mqtt.Client, msg mqtt.Message) {
 	cmd := cmdCycle
 
-	event, err := c.adapt(litterRobotState{
+	obj, err := c.adapt(litterRobotState{
 		LitterRobotID: c.parseIdentifierFromTopic(msg.Topic()),
 	})
 	if err != nil {
 		return
 	}
-	c.SendCommand(cmd, event)
 
-	serial := c.parseSerialFromTopic(msg.Topic())
+	c.commandUpdateChan <- struct {
+		Command int64
+		State   litterRobotState
+	}{
+		cmd,
+		obj,
+	}
+
+	serial := c.parseIdentifierFromTopic(msg.Topic())
 	state := litterRobotState(c.lastState[serial])
 	state.UnitStatus = "CCP"
 	state.UnitStatusRaw = "CCP"
@@ -266,15 +280,22 @@ func (c *mqttClient) commandNightLight(client mqtt.Client, msg mqtt.Message) {
 		cmd = cmdNightLightOn
 	}
 
-	event, err := c.adapt(litterRobotState{
+	obj, err := c.adapt(litterRobotState{
 		LitterRobotID: c.parseIdentifierFromTopic(msg.Topic()),
 	})
 	if err != nil {
 		return
 	}
-	c.SendCommand(cmd, event)
 
-	serial := c.parseSerialFromTopic(msg.Topic())
+	c.commandUpdateChan <- struct {
+		Command int64
+		State   litterRobotState
+	}{
+		cmd,
+		obj,
+	}
+
+	serial := c.parseIdentifierFromTopic(msg.Topic())
 	state := litterRobotState(c.lastState[serial])
 	if cmd == cmdNightLightOff {
 		state.NightLightActive = false
@@ -292,15 +313,22 @@ func (c *mqttClient) commandPanelLock(client mqtt.Client, msg mqtt.Message) {
 		cmd = cmdPanelLockOn
 	}
 
-	event, err := c.adapt(litterRobotState{
+	obj, err := c.adapt(litterRobotState{
 		LitterRobotID: c.parseIdentifierFromTopic(msg.Topic()),
 	})
 	if err != nil {
 		return
 	}
-	c.SendCommand(cmd, event)
 
-	serial := c.parseSerialFromTopic(msg.Topic())
+	c.commandUpdateChan <- struct {
+		Command int64
+		State   litterRobotState
+	}{
+		cmd,
+		obj,
+	}
+
+	serial := c.parseIdentifierFromTopic(msg.Topic())
 	state := litterRobotState(c.lastState[serial])
 	if cmd == cmdPanelLockOff {
 		state.PanelLockActive = false
@@ -311,7 +339,7 @@ func (c *mqttClient) commandPanelLock(client mqtt.Client, msg mqtt.Message) {
 	c.updateState(state)
 }
 
-func (c *mqttClient) parseSerialFromTopic(topic string) string {
+func (c *mqttClient) parseIdentifierFromTopic(topic string) string {
 	log.WithFields(log.Fields{
 		"topic": topic,
 	}).Debug("Parsing serial from MQTT topic")
@@ -324,31 +352,11 @@ func (c *mqttClient) parseSerialFromTopic(topic string) string {
 	return pieces[0]
 }
 
-func (c *mqttClient) parseIdentifierFromTopic(topic string) string {
-	log.WithFields(log.Fields{
-		"topic": topic,
-	}).Debug("Parsing identifier based on MQTT topic")
-
-	identifier := c.parseSerialFromTopic(topic)
-
-	if id, ok := c.KnownRobots[identifier]; ok {
-		identifier = id
-	}
-
-	log.Debug("Finished identifier based on MQTT topic")
-	return identifier
-}
-
-func (c *mqttClient) adapt(obj litterRobotState) (twomqtt.Event, error) {
+func (c *mqttClient) adapt(obj litterRobotState) (litterRobotState, error) {
 	log.WithFields(log.Fields{
 		"state": obj,
 	}).Debug("Adapting state information")
 
-	event := twomqtt.Event{
-		Type:    reflect.TypeOf(obj),
-		Payload: obj,
-	}
-
 	log.Debug("Finished adapting state information")
-	return event, nil
+	return obj, nil
 }
