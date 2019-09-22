@@ -1,11 +1,9 @@
 package main
 
-import "github.com/mannkind/twomqtt"
-
 type knownRobots = map[string]string
 
 const (
-	cmdUnknown twomqtt.Command = iota
+	cmdUnknown int64 = iota
 	cmdCycle
 	cmdWait
 	cmdPowerOn
@@ -19,6 +17,7 @@ const (
 type litterRobotState struct {
 	LitterRobotID             string `mqtt:",ignore" mqttDiscoveryType:",ignore"`
 	LitterRobotSerial         string `mqtt:",ignore" mqttDiscoveryType:",ignore"`
+	NameOrIP                  string `mqtt:",ignore" mqttDiscoveryType:",ignore"`
 	PowerStatus               string `mqttDiscoveryType:"sensor"`
 	UnitStatus                string `mqttDiscoveryType:"sensor"`
 	UnitStatusRaw             string `mqttDiscoveryType:"sensor"`

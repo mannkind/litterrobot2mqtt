@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"reflect"
 	"strings"
 	"testing"
 
@@ -10,8 +9,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const knownRobot = "LR3A134568:A63afb501d65cb"
-const knownSerial = "LR3A134568"
+const knownRobot = "A63afb501d65cb:Name"
+const knownID = "A63afb501d65cb"
 const knownDiscoveryName = "litterrobotDiscoveryName"
 const knownPrefix = "home/litterrobotTopicPrefix"
 
@@ -49,8 +48,8 @@ func TestDiscovery(t *testing.T) {
 				knownRobot,
 				knownDiscoveryName,
 				knownPrefix,
-				"homeassistant/sensor/" + knownDiscoveryName + "/" + strings.ToLower(knownSerial) + "_" + knownType + "/config",
-				"{\"availability_topic\":\"" + knownPrefix + "/status\",\"name\":\"" + knownDiscoveryName + " " + strings.ToLower(knownSerial) + " " + knownType + "\",\"state_topic\":\"" + knownPrefix + "/" + strings.ToLower(knownSerial) + "/" + knownType + "/state\",\"unique_id\":\"" + knownDiscoveryName + "." + strings.ToLower(knownSerial) + "." + knownType + "\"}",
+				"homeassistant/sensor/" + knownDiscoveryName + "/" + strings.ToLower(knownID) + "_" + knownType + "/config",
+				"{\"availability_topic\":\"" + knownPrefix + "/status\",\"name\":\"" + knownDiscoveryName + " " + strings.ToLower(knownID) + " " + knownType + "\",\"state_topic\":\"" + knownPrefix + "/" + strings.ToLower(knownID) + "/" + knownType + "/state\",\"unique_id\":\"" + knownDiscoveryName + "." + strings.ToLower(knownID) + "." + knownType + "\"}",
 			},
 		}
 
@@ -81,9 +80,9 @@ func TestReceieveState(t *testing.T) {
 		}{
 			{
 				knownRobot,
-				knownSerial,
+				knownID,
 				knownPrefix,
-				knownPrefix + "/" + strings.ToLower(knownSerial) + "/" + knownType + "/state",
+				knownPrefix + "/" + strings.ToLower(knownID) + "/" + knownType + "/state",
 				"Off",
 			},
 		}
@@ -98,11 +97,8 @@ func TestReceieveState(t *testing.T) {
 				UnitStatus:        "OFF",
 				CycleCount:        "Off", // Not a real status
 			}
-			event := twomqtt.Event{
-				Type:    reflect.TypeOf(obj),
-				Payload: obj,
-			}
-			c.mqttClient.ReceiveState(event)
+
+			c.mqttClient.receiveState(obj)
 
 			actualPayload := c.mqttClient.LastPublishedOnTopic(v.ExpectedTopic)
 			if actualPayload != v.ExpectedPayload {
@@ -119,7 +115,7 @@ func TestSendCommand(t *testing.T) {
 		Known           string
 		Serial          string
 		TopicPrefix     string
-		Command         twomqtt.Command
+		Command         int64
 		CommandTopic    string
 		CommandPayload  string
 		ExpectedTopic   string
@@ -127,32 +123,32 @@ func TestSendCommand(t *testing.T) {
 	}{
 		{
 			knownRobot,
-			knownSerial,
+			knownID,
 			knownPrefix,
 			cmdPowerOff,
-			knownPrefix + "/" + strings.ToLower(knownSerial) + "/power/command",
+			knownPrefix + "/" + strings.ToLower(knownID) + "/power/command",
 			"OFF",
-			knownPrefix + "/" + strings.ToLower(knownSerial) + "/unitstatus/state",
+			knownPrefix + "/" + strings.ToLower(knownID) + "/unitstatus/state",
 			"Off",
 		},
 		{
 			knownRobot,
-			knownSerial,
+			knownID,
 			knownPrefix,
 			cmdPanelLockOn,
-			knownPrefix + "/" + strings.ToLower(knownSerial) + "/panellockactive/command",
+			knownPrefix + "/" + strings.ToLower(knownID) + "/panellockactive/command",
 			"ON",
-			knownPrefix + "/" + strings.ToLower(knownSerial) + "/panellockactive/state",
+			knownPrefix + "/" + strings.ToLower(knownID) + "/panellockactive/state",
 			"ON",
 		},
 		{
 			knownRobot,
-			knownSerial,
+			knownID,
 			knownPrefix,
 			cmdNightLightOn,
-			knownPrefix + "/" + strings.ToLower(knownSerial) + "/nightlightactive/command",
+			knownPrefix + "/" + strings.ToLower(knownID) + "/nightlightactive/command",
 			"ON",
-			knownPrefix + "/" + strings.ToLower(knownSerial) + "/nightlightactive/state",
+			knownPrefix + "/" + strings.ToLower(knownID) + "/nightlightactive/state",
 			"ON",
 		},
 	}

@@ -32,12 +32,12 @@ LITTERROBOT_LOCAL       - [OPTIONAL] The flag that indicates that you want to us
 LITTERROBOT_EMAIL       - [OPTIONAL] The username/email for the Litter Robot API (required, if not using the local API)
 LITTERROBOT_PASSWORD    - [OPTIONAL] The password for the Litter Robot API (required, if not using the local API)
 LITTERROBOT_APIKEY      - [OPTIONAL] The API Key for the Litter Robot API, defaults to "Gmdfw5Cq3F3Mk6xvvO0inHATJeoDv6C3KfwfOuh0" which is the API Key for the iOS app
-LITTERROBOT_KNOWN       - [OPTIONAL] The mapping between a Litter Robot serial number and an ID (API) or IP Address (local), e.g. "LR3AAAAAAA:aaaaaaaaaaaaaa,LR3BABBBBB:bbbbbbbbbbbbbb"
+LITTERROBOT_KNOWN       - [OPTIONAL] The list of Litter Robot IDs from the API, e.g. "3a2aac320c65cb,3a2aac321c65cc"
 MQTT_TOPICPREFIX        - [OPTIONAL] The MQTT topic on which to publish the receiver status, defaults to "litterrobot"
 MQTT_DISCOVERY          - [OPTIONAL] The MQTT discovery flag for Home Assistant, defaults to false
 MQTT_DISCOVERYPREFIX    - [OPTIONAL] The MQTT discovery prefix for Home Assistant, defaults to "homeassistant"
 MQTT_DISCOVERYNAME      - [OPTIONAL] The MQTT discovery name for Home Assistant, defaults to "litterrobot"
-MQTT_CLIENTID           - [OPTIONAL] The clientId, defaults to "DefaultLitterRobot2mqttClientID"
+MQTT_CLIENTID           - [OPTIONAL] The clientId, defaults to ""
 MQTT_BROKER             - [OPTIONAL] The MQTT broker, defaults to "tcp://mosquitto.org:1883"
 MQTT_USERNAME           - [OPTIONAL] The MQTT username, default to ""
 MQTT_PASSWORD           - [OPTIONAL] The MQTT password, default to ""
