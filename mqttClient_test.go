@@ -73,7 +73,7 @@ func TestReceieveState(t *testing.T) {
 	for _, knownType := range knownTypes {
 		var tests = []struct {
 			Known           string
-			Serial          string
+			LitterRobotID   string
 			TopicPrefix     string
 			ExpectedTopic   string
 			ExpectedPayload string
@@ -92,10 +92,10 @@ func TestReceieveState(t *testing.T) {
 
 			c := initialize()
 			obj := litterRobotState{
-				LitterRobotSerial: v.Serial,
-				PowerStatus:       "Off", // Not a real status
-				UnitStatus:        "OFF",
-				CycleCount:        "Off", // Not a real status
+				LitterRobotID: v.LitterRobotID,
+				PowerStatus:   "Off", // Not a real status
+				UnitStatus:    "OFF",
+				CycleCount:    "Off", // Not a real status
 			}
 
 			c.mqttClient.receiveState(obj)
@@ -159,7 +159,7 @@ func TestSendCommand(t *testing.T) {
 		serial := strings.ToLower(v.Serial)
 		c := initialize()
 		c.mqttClient.lastState[serial] = litterRobotState{
-			LitterRobotSerial: v.Serial,
+			LitterRobotID: v.Serial,
 		}
 
 		cmd := c.mqttClient.commandPower

@@ -134,7 +134,7 @@ func (c *mqttClient) updateState(info litterRobotState) {
 			sensor = sensorOverride
 		}
 
-		topic := c.StateTopic(info.LitterRobotSerial, sensor)
+		topic := c.StateTopic(info.LitterRobotID, sensor)
 		payload := ""
 
 		switch val.Kind() {
@@ -163,7 +163,7 @@ func (c *mqttClient) updateState(info litterRobotState) {
 			"name":       info.NameOrIP,
 		}).Warn("NEW LITTER ROBOT FOUND")
 	}
-	c.lastState[info.LitterRobotSerial] = info
+	c.lastState[info.LitterRobotID] = info
 }
 
 func (c *mqttClient) publishDiscovery() {
@@ -173,9 +173,9 @@ func (c *mqttClient) publishDiscovery() {
 
 	log.Info("Publishing MQTT Discovery")
 
-	for serial := range c.KnownRobots {
+	for litterRobotID := range c.KnownRobots {
 		log.WithFields(log.Fields{
-			"robot": serial,
+			"robot": litterRobotID,
 		}).Debug("Iterating through robots")
 
 		obj := reflect.ValueOf(litterRobotState{})
@@ -195,10 +195,10 @@ func (c *mqttClient) publishDiscovery() {
 				sensor = sensorOverride
 			}
 
-			mqd := c.NewMQTTDiscovery(serial, sensor, sensorType)
+			mqd := c.NewMQTTDiscovery(litterRobotID, sensor, sensorType)
 
 			if sensorType == "switch" {
-				mqd.CommandTopic = c.CommandTopic(serial, sensor)
+				mqd.CommandTopic = c.CommandTopic(litterRobotID, sensor)
 			}
 
 			if sensor == "cleancyclewaittimeminutes" {
