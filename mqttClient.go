@@ -205,6 +205,9 @@ func (c *mqttClient) publishDiscovery() {
 				mqd.UnitOfMeasurement = "min"
 			}
 
+			mqd.Device.Name = Name
+			mqd.Device.SWVersion = Version
+
 			c.PublishDiscovery(mqd)
 		}
 

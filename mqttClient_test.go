@@ -49,7 +49,7 @@ func TestDiscovery(t *testing.T) {
 				knownDiscoveryName,
 				knownPrefix,
 				"homeassistant/sensor/" + knownDiscoveryName + "/" + strings.ToLower(knownID) + "_" + knownType + "/config",
-				"{\"availability_topic\":\"" + knownPrefix + "/status\",\"name\":\"" + knownDiscoveryName + " " + strings.ToLower(knownID) + " " + knownType + "\",\"state_topic\":\"" + knownPrefix + "/" + strings.ToLower(knownID) + "/" + knownType + "/state\",\"unique_id\":\"" + knownDiscoveryName + "." + strings.ToLower(knownID) + "." + knownType + "\"}",
+				"{\"availability_topic\":\"" + knownPrefix + "/status\",\"device\":{\"identifiers\":[\"" + knownPrefix + "/status\"],\"manufacturer\":\"twomqtt\",\"name\":\"x2mqtt\",\"sw_version\":\"X.X.X\"},\"name\":\"" + knownDiscoveryName + " " + strings.ToLower(knownID) + " " + knownType + "\",\"state_topic\":\"" + knownPrefix + "/" + strings.ToLower(knownID) + "/" + knownType + "/state\",\"unique_id\":\"" + knownDiscoveryName + "." + strings.ToLower(knownID) + "." + knownType + "\"}",
 			},
 		}
 
