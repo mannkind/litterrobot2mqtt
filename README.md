@@ -14,12 +14,12 @@ License](https://img.shields.io/badge/License-MIT-orange.svg?style=flat-square)]
 docker run -d --name="litterrobot2mqtt" -v /etc/localtime:/etc/localtime:ro mannkind/litterrobot2mqtt
 ```
 
-### Via Make
+### Via Mage
 
 ```bash
 git clone https://github.com/mannkind/litterrobot2mqtt
 cd litterrobot2mqtt
-make
+mage
 ./litterrobot2mqtt
 ```
 
