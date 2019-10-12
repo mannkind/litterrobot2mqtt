@@ -8,7 +8,7 @@ require (
 	github.com/google/wire v0.3.0
 	github.com/magefile/mage v1.9.0
 	github.com/mannkind/litterrobot v0.3.0
-	github.com/mannkind/twomqtt v0.3.2
+	github.com/mannkind/twomqtt v0.3.3
 	github.com/sirupsen/logrus v1.4.2
 )
 
