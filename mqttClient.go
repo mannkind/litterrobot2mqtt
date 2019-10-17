@@ -23,6 +23,7 @@ var statusMapping = map[string]string{
 	"CSF": "Cat sensor full",
 	"CCP": "Cycle processing",
 	"CCC": "Cycle complete",
+	"EC":  "Emptying container",
 }
 
 type mqttClient struct {
