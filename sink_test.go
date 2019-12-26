@@ -38,18 +38,20 @@ func TestDiscovery(t *testing.T) {
 
 	for _, knownType := range knownTypes {
 		var tests = []struct {
-			Known           string
-			DiscoveryName   string
-			TopicPrefix     string
-			ExpectedTopic   string
-			ExpectedPayload string
+			Known              string
+			DiscoveryName      string
+			TopicPrefix        string
+			ExpectedName       string
+			ExpectedStateTopic string
+			ExpectedUniqueID   string
 		}{
 			{
 				knownRobot,
 				knownDiscoveryName,
 				knownPrefix,
-				"homeassistant/sensor/" + knownDiscoveryName + "/" + strings.ToLower(knownID) + "_" + knownType + "/config",
-				"{\"availability_topic\":\"" + knownPrefix + "/status\",\"device\":{\"identifiers\":[\"" + knownPrefix + "/status\"],\"manufacturer\":\"twomqtt\",\"name\":\"x2mqtt\",\"sw_version\":\"X.X.X\"},\"name\":\"" + knownDiscoveryName + " " + strings.ToLower(knownID) + " " + knownType + "\",\"state_topic\":\"" + knownPrefix + "/" + strings.ToLower(knownID) + "/" + knownType + "/state\",\"unique_id\":\"" + knownDiscoveryName + "." + strings.ToLower(knownID) + "." + knownType + "\"}",
+				knownDiscoveryName + " " + strings.ToLower(knownID) + " " + knownType,
+				knownPrefix + "/" + strings.ToLower(knownID) + "/" + knownType + "/state",
+				knownDiscoveryName + "." + strings.ToLower(knownID) + "." + knownType,
 			},
 		}
 
@@ -57,17 +59,30 @@ func TestDiscovery(t *testing.T) {
 			setEnvs("true", v.DiscoveryName, v.TopicPrefix, v.Known)
 
 			c := initialize()
-			c.mqttClient.publishDiscovery()
+			mqds := c.sink.discovery()
 
-			actualPayload := c.mqttClient.LastPublishedOnTopic(v.ExpectedTopic)
-			if actualPayload != v.ExpectedPayload {
-				t.Errorf("Actual:%s\nExpected:%s", actualPayload, v.ExpectedPayload)
+			mqd := twomqtt.MQTTDiscovery{}
+			for _, tmqd := range mqds {
+				if tmqd.Name == v.ExpectedName {
+					mqd = tmqd
+					break
+				}
+			}
+
+			if mqd.Name != v.ExpectedName {
+				t.Errorf("discovery Name does not match; %s vs %s", mqd.Name, v.ExpectedName)
+			}
+			if mqd.StateTopic != v.ExpectedStateTopic {
+				t.Errorf("discovery StateTopic does not match; %s vs %s", mqd.StateTopic, v.ExpectedStateTopic)
+			}
+			if mqd.UniqueID != v.ExpectedUniqueID {
+				t.Errorf("discovery UniqueID does not match; %s vs %s", mqd.UniqueID, v.ExpectedUniqueID)
 			}
 		}
 	}
 }
 
-func TestReceieveState(t *testing.T) {
+func TestPublish(t *testing.T) {
 	defer clearEnvs()
 
 	for _, knownType := range knownTypes {
@@ -91,18 +106,25 @@ func TestReceieveState(t *testing.T) {
 			setEnvs("false", "", v.TopicPrefix, v.Known)
 
 			c := initialize()
-			obj := litterRobotState{
+			obj := sourceRep{
 				LitterRobotID: v.LitterRobotID,
 				PowerStatus:   "Off", // Not a real status
 				UnitStatus:    "OFF",
 				CycleCount:    "Off", // Not a real status
 			}
 
-			c.mqttClient.receiveState(obj)
+			allPublished := c.sink.publish(obj)
 
-			actualPayload := c.mqttClient.LastPublishedOnTopic(v.ExpectedTopic)
-			if actualPayload != v.ExpectedPayload {
-				t.Errorf("Actual:%s\nExpected:%s", actualPayload, v.ExpectedPayload)
+			matching := twomqtt.MQTTMessage{}
+			for _, state := range allPublished {
+				if state.Topic == v.ExpectedTopic {
+					matching = state
+					break
+				}
+			}
+
+			if matching.Payload != v.ExpectedPayload {
+				t.Errorf("Actual:%s\nExpected:%s", matching.Payload, v.ExpectedPayload)
 			}
 		}
 	}
@@ -158,27 +180,34 @@ func TestSendCommand(t *testing.T) {
 		os.Setenv("LITTERROBOT_KNOWN", v.Known)
 		serial := strings.ToLower(v.Serial)
 		c := initialize()
-		c.mqttClient.lastState[serial] = litterRobotState{
+		c.sink.lastState[serial] = sourceRep{
 			LitterRobotID: v.Serial,
 		}
 
-		cmd := c.mqttClient.commandPower
+		cmd := c.sink.commandPower
 		if v.Command == cmdPowerOff {
-			cmd = c.mqttClient.commandPower
+			cmd = c.sink.commandPower
 		} else if v.Command == cmdPanelLockOn {
-			cmd = c.mqttClient.commandPanelLock
+			cmd = c.sink.commandPanelLock
 		} else if v.Command == cmdNightLightOn {
-			cmd = c.mqttClient.commandNightLight
+			cmd = c.sink.commandNightLight
 		}
 
-		cmd(c.mqttClient.Client, &twomqtt.MoqMessage{
+		allPublished := cmd(nil, &twomqtt.MoqMessage{
 			TopicSrc:   v.CommandTopic,
 			PayloadSrc: v.CommandPayload,
 		})
 
-		actualPayload := c.mqttClient.LastPublishedOnTopic(v.ExpectedTopic)
-		if actualPayload != v.ExpectedPayload {
-			t.Errorf("Actual:%s\nExpected:%s", actualPayload, v.ExpectedPayload)
+		matching := twomqtt.MQTTMessage{}
+		for _, state := range allPublished {
+			if state.Topic == v.ExpectedTopic {
+				matching = state
+				break
+			}
+		}
+
+		if matching.Payload != v.ExpectedPayload {
+			t.Errorf("Actual:%s\nExpected:%s", matching.Payload, v.ExpectedPayload)
 		}
 	}
 }

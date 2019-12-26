@@ -11,16 +11,19 @@ import (
 
 // Injectors from wire.go:
 
-func initialize() *bridge {
-	mainConfig := newConfig()
-	mainMqttClientConfig := mainConfig.MQTTClientConfig
-	mqttProxyConfig := mainMqttClientConfig.MQTTProxyConfig
-	mqttProxy := twomqtt.NewMQTTProxy(mqttProxyConfig)
-	v := newStateChannel()
-	v2 := newCommandChannel()
-	mainMqttClient := newMQTTClient(mainMqttClientConfig, mqttProxy, v, v2)
-	mainServiceClientConfig := mainConfig.ServiceClientConfig
-	mainServiceClient := newServiceClient(mainServiceClientConfig, v, v2)
-	mainBridge := newBridge(mainMqttClient, mainServiceClient)
-	return mainBridge
+func initialize() *app {
+	mainOpts := newOpts()
+	mainSourceOpts := mainOpts.Source
+	mainComms := newComms()
+	v := mainComms.commandInput
+	v2 := mainComms.stateOutput
+	mainSource := newSource(mainSourceOpts, v, v2)
+	mainSinkOpts := mainOpts.Sink
+	mqttOpts := mainSinkOpts.MQTTOpts
+	mqtt := twomqtt.NewMQTT(mqttOpts)
+	v3 := mainComms.stateInput
+	v4 := mainComms.commandOutput
+	mainSink := newSink(mqtt, mainSinkOpts, v3, v4)
+	mainApp := newApp(mainSource, mainSink)
+	return mainApp
 }
