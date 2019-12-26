@@ -1,20 +1,6 @@
 package main
 
-type knownRobots = map[string]string
-
-const (
-	cmdUnknown int64 = iota
-	cmdCycle
-	cmdWait
-	cmdPowerOn
-	cmdPowerOff
-	cmdPanelLockOn
-	cmdPanelLockOff
-	cmdNightLightOn
-	cmdNightLightOff
-)
-
-type litterRobotState struct {
+type sourceRep struct {
 	LitterRobotID             string `mqtt:",ignore" mqttDiscoveryType:",ignore"`
 	LitterRobotSerial         string `mqtt:",ignore" mqttDiscoveryType:",ignore"`
 	NameOrIP                  string `mqtt:",ignore" mqttDiscoveryType:",ignore"`

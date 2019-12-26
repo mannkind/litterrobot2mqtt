@@ -4,8 +4,8 @@ import (
 	"time"
 )
 
-type serviceClientConfig struct {
-	globalClientConfig
+type sourceOpts struct {
+	globalOpts
 	Local          bool          `env:"LITTERROBOT_LOCAL" envDefault:"false"`
 	Email          string        `env:"LITTERROBOT_EMAIL"`
 	Password       string        `env:"LITTERROBOT_PASSWORD"`
