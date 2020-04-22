@@ -3,7 +3,7 @@ package main
 import (
 	"strings"
 
-	"github.com/mannkind/litterrobot"
+	"github.com/mannkind/litterrobot2mqtt/lib"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -11,19 +11,19 @@ type source struct {
 	config         sourceOpts
 	incoming       <-chan commandRep
 	outgoing       chan<- sourceRep
-	source         *litterrobot.Client
-	sourceIncoming <-chan litterrobot.State
+	source         *lib.Client
+	sourceIncoming <-chan lib.State
 }
 
 func newSource(config sourceOpts, incoming <-chan commandRep, outgoing chan<- sourceRep) *source {
-	sourceIncoming := make(chan litterrobot.State, 100)
+	sourceIncoming := make(chan lib.State, 100)
 
 	c := source{
 		config:         config,
 		incoming:       incoming,
 		outgoing:       outgoing,
 		sourceIncoming: sourceIncoming,
-		source: litterrobot.NewClient(litterrobot.Opts{
+		source: lib.NewClient(lib.Opts{
 			Local:             config.Local,
 			Email:             config.Email,
 			Password:          config.Password,
@@ -70,7 +70,7 @@ func (c *source) read() {
 	}
 }
 
-func (c *source) sourceState(info litterrobot.State) {
+func (c *source) sourceState(info lib.State) {
 	log.WithFields(log.Fields{
 		"info": info,
 	}).Info("Receiving state from Litter Robot")
@@ -110,7 +110,7 @@ func (c *source) command(info commandRep) {
 	log.Info("Finished receiving command to handle")
 }
 
-func (c *source) adapt(info litterrobot.State) sourceRep {
+func (c *source) adapt(info lib.State) sourceRep {
 	power := false
 	if !info.SleepModeActive && info.UnitStatus != "OFF" {
 		power = true
