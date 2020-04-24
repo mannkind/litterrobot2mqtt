@@ -16,6 +16,9 @@ using TwoMQTT.Core.DataAccess;
 
 namespace LitterRobot.Managers
 {
+    /// <summary>
+    /// An class representing a managed way to interact with a source.
+    /// </summary>
     public class SourceManager : HTTPPollingManager<SlugMapping, FetchResponse, object, Resource, Command>
     {
         public SourceManager(ILogger<SourceManager> logger, IOptions<Models.Shared.Opts> sharedOpts, IOptions<Models.SourceManager.Opts> opts, ChannelWriter<Resource> outgoing, ChannelReader<Command> incoming, IHTTPSourceDAO<SlugMapping, Command, Models.SourceManager.FetchResponse, object> sourceDAO, IHttpClientFactory httpClientFactory) :
@@ -32,7 +35,7 @@ namespace LitterRobot.Managers
                 $"Login: {this.Opts.Login}\n" +
                 $"Password: {(!string.IsNullOrEmpty(this.Opts.Password) ? "<REDACTED>" : string.Empty)}\n" +
                 $"PollingInterval: {this.PollingInterval}\n" +
-                $"Resources: {this.Questions.Select(x => $"{x.LRID}:{x.Slug}")}\n" +
+                $"Resources: {string.Join(',', this.Questions.Select(x => $"{x.LRID}:{x.Slug}"))}\n" +
                 $""
             );
         }
@@ -63,8 +66,20 @@ namespace LitterRobot.Managers
                 DFICycleCount = src.DFICycleCount,
             };
 
+
+        /// <summary>
+        /// The options for the source.
+        /// </summary>
         private readonly Models.SourceManager.Opts Opts;
+
+        /// <summary>
+        /// The options that are shared.
+        /// </summary>
         private readonly Models.Shared.Opts SharedOpts;
+
+        /// <summary>
+        /// The translation between machine codes and human-readable statuses.
+        /// </summary>
         private readonly Dictionary<string, string> StatusMapping = new Dictionary<string, string>
         {
             { "RDY", "Ready" },

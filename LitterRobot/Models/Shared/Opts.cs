@@ -7,7 +7,7 @@ namespace LitterRobot.Models.Shared
     /// </summary>
     public class Opts
     {
-        public const string Section = "LitterRobot:Shared";
+        public const string Section = "LitterRobot";
 
         /// <summary>
         /// 

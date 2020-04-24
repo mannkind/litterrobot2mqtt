@@ -7,7 +7,7 @@ namespace LitterRobot.Models.SinkManager
     /// </summary>
     public class Opts : MQTTManagerOptions
     {
-        public const string Section = "LitterRobot:Sink";
+        public const string Section = "LitterRobot";
 
         /// <summary>
         /// 

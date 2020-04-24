@@ -7,7 +7,7 @@ namespace LitterRobot.Models.SourceManager
     /// </summary>
     public class Opts
     {
-        public const string Section = "LitterRobot:Source";
+        public const string Section = "LitterRobot";
 
         /// <summary>
         /// 
