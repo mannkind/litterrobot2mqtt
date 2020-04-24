@@ -183,16 +183,17 @@ namespace LitterRobot.Managers
 
             var tasks = new List<Task>();
             var assembly = Assembly.GetAssembly(typeof(Program))?.GetName() ?? new AssemblyName();
+            const string switchConst = "switch";
             var mapping = new[]
             {
                 new { Sensor = nameof(Resource.LitterRobotId), Type = Const.SENSOR },
                 new { Sensor = nameof(Resource.PowerStatus), Type = Const.SENSOR },
                 new { Sensor = nameof(Resource.UnitStatus), Type = Const.SENSOR },
                 new { Sensor = nameof(Resource.UnitStatusText), Type = Const.SENSOR },
-                new { Sensor = nameof(Resource.Power), Type = Const.BINARY_SENSOR },
-                new { Sensor = nameof(Resource.Cycle), Type = Const.BINARY_SENSOR },
-                new { Sensor = nameof(Resource.NightLightActive), Type = Const.BINARY_SENSOR },
-                new { Sensor = nameof(Resource.PanelLockActive), Type = Const.BINARY_SENSOR },
+                new { Sensor = nameof(Resource.Power), Type = switchConst },
+                new { Sensor = nameof(Resource.Cycle), Type = switchConst },
+                new { Sensor = nameof(Resource.NightLightActive), Type = switchConst },
+                new { Sensor = nameof(Resource.PanelLockActive), Type = switchConst },
                 new { Sensor = nameof(Resource.DFITriggered), Type = Const.BINARY_SENSOR },
                 new { Sensor = nameof(Resource.SleepModeActive), Type = Const.BINARY_SENSOR },
             };
@@ -202,6 +203,10 @@ namespace LitterRobot.Managers
                 foreach (var map in mapping)
                 {
                     var discovery = this.BuildDiscovery(input.Slug, map.Sensor, assembly, false);
+                    if (map.Type == switchConst)
+                    {
+                        discovery.CommandTopic = this.CommandTopic(input.Slug, map.Sensor);
+                    }
                     tasks.Add(this.PublishDiscoveryAsync(input.Slug, map.Sensor, map.Type, discovery, cancellationToken));
                 }
             }
