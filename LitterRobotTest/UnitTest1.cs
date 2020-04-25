@@ -1,6 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace ZillowTest
+namespace LitterRobotTest
 {
     [TestClass]
     public class UnitTest1

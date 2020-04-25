@@ -6,10 +6,8 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using MQTTnet;
 using TwoMQTT.Core.Managers;
 using LitterRobot.Models.Shared;
-using System.Text;
 using TwoMQTT.Core;
 
 namespace LitterRobot.Managers
@@ -41,34 +39,25 @@ namespace LitterRobot.Managers
             var tasks = new List<Task>();
             foreach (var input in this.Questions)
             {
-                var topics = new List<TopicFilter>
+                var topics = new List<string>
                 {
-                    new TopicFilterBuilder().WithTopic(
-                        $"{this.CommandTopic(input.Slug, nameof(Resource.Power))}"
-                    ).Build(),
-                    new TopicFilterBuilder().WithTopic(
-                        $"{this.CommandTopic(input.Slug, nameof(Resource.Cycle))}"
-                    ).Build(),
-                    new TopicFilterBuilder().WithTopic(
-                        $"{this.CommandTopic(input.Slug, nameof(Resource.NightLightActive))}"
-                    ).Build(),
-                    new TopicFilterBuilder().WithTopic(
-                        $"{this.CommandTopic(input.Slug, nameof(Resource.PanelLockActive))}"
-                    ).Build(),
+                    this.CommandTopic(input.Slug, nameof(Resource.Power)),
+                    this.CommandTopic(input.Slug, nameof(Resource.Cycle)),
+                    this.CommandTopic(input.Slug, nameof(Resource.NightLightActive)),
+                    this.CommandTopic(input.Slug, nameof(Resource.PanelLockActive)),
                 };
 
-                tasks.Add(this.Client.SubscribeAsync(topics));
+                tasks.Add(this.SubscribeAsync(topics, cancellationToken));
             }
 
             await Task.WhenAll(tasks);
         }
 
         /// <inheritdoc />
-        protected override async Task HandleIncomingMessageAsync(MqttApplicationMessageReceivedEventArgs e,
+        protected override async Task HandleIncomingMessageAsync(string topic, string payload,
             CancellationToken cancellationToken = default)
         {
-            await base.HandleIncomingMessageAsync(e, cancellationToken);
-
+            // await base.HandleIncomingMessageAsync(topic, payload, cancellationToken);
             foreach (var input in this.Questions)
             {
                 var litterRobotId = this.Questions
@@ -90,23 +79,23 @@ namespace LitterRobot.Managers
                     }
                 };
 
-                switch (e.ApplicationMessage.Topic)
+                switch (topic)
                 {
                     case string s when s == this.CommandTopic(input.Slug, nameof(Resource.Power)):
                         cmd.Command = (int)CommandType.Power;
-                        cmd.Data.Power = Encoding.UTF8.GetString(e.ApplicationMessage.Payload) == Const.ON;
+                        cmd.Data.Power = payload == Const.ON;
                         break;
                     case string s when s == this.CommandTopic(input.Slug, nameof(Resource.Cycle)):
                         cmd.Command = (int)CommandType.Cycle;
-                        cmd.Data.Cycle = Encoding.UTF8.GetString(e.ApplicationMessage.Payload) == Const.ON;
+                        cmd.Data.Cycle = payload == Const.ON;
                         break;
                     case string s when s == this.CommandTopic(input.Slug, nameof(Resource.NightLightActive)):
                         cmd.Command = (int)CommandType.NightLight;
-                        cmd.Data.NightLightActive = Encoding.UTF8.GetString(e.ApplicationMessage.Payload) == Const.ON;
+                        cmd.Data.NightLightActive = payload == Const.ON;
                         break;
                     case string s when s == this.CommandTopic(input.Slug, nameof(Resource.PanelLockActive)):
                         cmd.Command = (int)CommandType.PanelLock;
-                        cmd.Data.PanelLockActive = Encoding.UTF8.GetString(e.ApplicationMessage.Payload) == Const.ON;
+                        cmd.Data.PanelLockActive = payload == Const.ON;
                         break;
                 }
 
