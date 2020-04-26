@@ -1,18 +1,18 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using System.Threading;
-using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Net.Http;
-using LitterRobot.Models.Shared;
-using TwoMQTT.Core.Managers;
-using LitterRobot.Models.SourceManager;
-using System;
 using LitterRobot.DataAccess;
+using LitterRobot.Models.Shared;
+using LitterRobot.Models.SourceManager;
 using TwoMQTT.Core;
 using TwoMQTT.Core.DataAccess;
+using TwoMQTT.Core.Managers;
 
 namespace LitterRobot.Managers
 {

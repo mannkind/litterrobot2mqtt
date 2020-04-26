@@ -42,11 +42,11 @@ LITTERROBOT__MQTT__DISCOVERYENABLED="true" \
 Configuration happens via environmental variables
 
 ```bash
-LITTERROBOT__LOGIN                      - The Litter Robot Login
-LITTERROBOT__PASSWORD                   - The Litter Robot Password
-LITTERROBOT__RESOURCES__#__LRID           - The Litter Robot ID for a specific Litter Robot
-LITTERROBOT__RESOURCES__#__Slug         - The slug to identify the specific Litter Robot ID
-LITTERROBOT__POLLINGINTERVAL            - [OPTIONAL] The delay between litter robot status lookups, defaults to "0.00:00:31"
+LITTERROBOT__LOGIN                              - The Litter Robot Login
+LITTERROBOT__PASSWORD                           - The Litter Robot Password
+LITTERROBOT__RESOURCES__#__LRID                 - The Litter Robot ID for a specific Litter Robot
+LITTERROBOT__RESOURCES__#__Slug                 - The slug to identify the specific Litter Robot ID
+LITTERROBOT__POLLINGINTERVAL                    - [OPTIONAL] The delay between litter robot status lookups, defaults to "0.00:00:31"
 LITTERROBOT__MQTT__TOPICPREFIX                  - [OPTIONAL] The MQTT topic on which to publish the collection lookup results, defaults to "home/litterrobot"
 LITTERROBOT__MQTT__DISCOVERYENABLED             - [OPTIONAL] The MQTT discovery flag for Home Assistant, defaults to false
 LITTERROBOT__MQTT__DISCOVERYPREFIX              - [OPTIONAL] The MQTT discovery prefix for Home Assistant, defaults to "homeassistant"

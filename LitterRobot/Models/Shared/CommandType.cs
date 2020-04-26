@@ -1,5 +1,3 @@
-using TwoMQTT.Core.Models;
-
 namespace LitterRobot.Models.Shared
 {
     /// <summary>

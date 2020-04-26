@@ -2,7 +2,8 @@
   "name": "twomqtt",
   "dockerFile": "Dockerfile",
   "settings": {
-    "terminal.integrated.shell.linux": "/bin/bash"
+    "terminal.integrated.shell.linux": "/bin/bash",
+    "csharpsortusings.sort.usings.splitGroups": false
   },
   "runArgs": [
     "-u",
@@ -13,6 +14,7 @@
   "postCreateCommand": "mkdir -p ~/.ssh && cp -r ~/.ssh-localhost/* ~/.ssh && chmod 700 ~/.ssh && chmod 600 ~/.ssh/*",
   "extensions": [
     "ms-dotnettools.csharp",
-    "k--kato.docomment"
+    "k--kato.docomment",
+    "jongrant.csharpsortusings"
   ]
 }

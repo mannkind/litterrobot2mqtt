@@ -1,16 +1,16 @@
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Net.Http;
+using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
-using System.Net.Http;
-using System;
-using System.Text;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
-using TwoMQTT.Core.DataAccess;
 using LitterRobot.Models.Shared;
+using Newtonsoft.Json;
+using TwoMQTT.Core.DataAccess;
 
 namespace LitterRobot.DataAccess
 {

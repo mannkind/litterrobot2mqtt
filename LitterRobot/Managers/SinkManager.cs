@@ -6,9 +6,9 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using TwoMQTT.Core.Managers;
 using LitterRobot.Models.Shared;
 using TwoMQTT.Core;
+using TwoMQTT.Core.Managers;
 
 namespace LitterRobot.Managers
 {

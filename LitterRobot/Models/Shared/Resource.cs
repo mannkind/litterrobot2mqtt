@@ -1,5 +1,3 @@
-using System;
-
 namespace LitterRobot.Models.Shared
 {
     /// <summary>
