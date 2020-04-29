@@ -55,3 +55,9 @@ LITTERROBOT__MQTT__BROKER                       - [OPTIONAL] The MQTT broker, de
 LITTERROBOT__MQTT__USERNAME                     - [OPTIONAL] The MQTT username, default to ""
 LITTERROBOT__MQTT__PASSWORD                     - [OPTIONAL] The MQTT password, default to ""
 ```
+
+## Prior Implementations
+
+### Golang
+* Last Commit: [5b623935f3a73db0ed986997f1b22375f5465867](https://github.com/mannkind/litterrobot2mqtt/commit/5b623935f3a73db0ed986997f1b22375f5465867)
+* Last Docker Image: [mannkind/litterrobot2mqtt:v0.2.19360.0428](https://hub.docker.com/layers/mannkind/litterrobot2mqtt/v0.2.19360.0428/images/sha256-b65876a4036ae9fa37260dd173350477174c82188165747076af08a533fb26e6?context=explore)
