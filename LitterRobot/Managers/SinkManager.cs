@@ -175,16 +175,16 @@ namespace LitterRobot.Managers
             const string switchConst = "switch";
             var mapping = new[]
             {
-                new { Sensor = nameof(Resource.LitterRobotId), Type = Const.SENSOR },
-                new { Sensor = nameof(Resource.PowerStatus), Type = Const.SENSOR },
-                new { Sensor = nameof(Resource.UnitStatus), Type = Const.SENSOR },
-                new { Sensor = nameof(Resource.UnitStatusText), Type = Const.SENSOR },
-                new { Sensor = nameof(Resource.Power), Type = switchConst },
-                new { Sensor = nameof(Resource.Cycle), Type = switchConst },
-                new { Sensor = nameof(Resource.NightLightActive), Type = switchConst },
-                new { Sensor = nameof(Resource.PanelLockActive), Type = switchConst },
-                new { Sensor = nameof(Resource.DFITriggered), Type = Const.BINARY_SENSOR },
-                new { Sensor = nameof(Resource.SleepModeActive), Type = Const.BINARY_SENSOR },
+                new { Sensor = nameof(Resource.LitterRobotId), Type = Const.SENSOR, Icon = "mdi:identifier" },
+                new { Sensor = nameof(Resource.PowerStatus), Type = Const.SENSOR, Icon = "mdi:power-settings" },
+                new { Sensor = nameof(Resource.UnitStatus), Type = Const.SENSOR, Icon = "mdi:robot" },
+                new { Sensor = nameof(Resource.UnitStatusText), Type = Const.SENSOR, Icon = "mdi:robot" },
+                new { Sensor = nameof(Resource.Power), Type = switchConst, Icon = "mdi:power" },
+                new { Sensor = nameof(Resource.Cycle), Type = switchConst, Icon = "mdi:rotate-left" },
+                new { Sensor = nameof(Resource.NightLightActive), Type = switchConst, Icon = "mdi:lightbulb" },
+                new { Sensor = nameof(Resource.PanelLockActive), Type = switchConst, Icon = "mdi:lock" },
+                new { Sensor = nameof(Resource.DFITriggered), Type = Const.BINARY_SENSOR, Icon = "mdi:delete-empty" },
+                new { Sensor = nameof(Resource.SleepModeActive), Type = Const.BINARY_SENSOR, Icon = "mdi:sleep" },
             };
 
             foreach (var input in this.Questions)
