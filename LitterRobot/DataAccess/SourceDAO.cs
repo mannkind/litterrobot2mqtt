@@ -11,6 +11,7 @@ using Microsoft.Extensions.Primitives;
 using LitterRobot.Models.Shared;
 using Newtonsoft.Json;
 using TwoMQTT.Core.DataAccess;
+using TwoMQTT.Core;
 
 namespace LitterRobot.DataAccess
 {
@@ -239,6 +240,7 @@ namespace LitterRobot.DataAccess
             { (int)CommandType.NightLight, "<N" },
             { (int)CommandType.PanelLock, "<L" },
             { (int)CommandType.WaitTime, "<W" },
+            { (int)CommandType.Sleep, "<S" },
         };
 
         /// <summary>
@@ -249,7 +251,12 @@ namespace LitterRobot.DataAccess
         private string TranslateCommand(Command item)
         {
             // Covert from the internal Command into something LitterRobot knows about
+            // Represent true = "1", false = "0"
             Func<bool, string> onoff = (bool x) => x ? "1" : "0";
+            // Represent the number as hex; 7 is the default for bad numbers
+            Func<long, string> waitTime = (long x) => x == 3 || x == 7 ? x.ToString() : x == 15 ? "F" : "7";
+            // Represent off = "0", on = now, or any time (which is when the litter robot last slept)
+            Func<string, string> sleepTime = (string x) => x == Const.OFF ? "0" : x == Const.ON ? "100:00:00" : $"1{x}";
             var cmd =
                 (this.CommandMapping.ContainsKey(item.Command) ? this.CommandMapping[item.Command] : string.Empty) +
                 (
@@ -257,7 +264,8 @@ namespace LitterRobot.DataAccess
                     item.Command == (int)CommandType.Cycle ? onoff(item.Data.Cycle) :
                     item.Command == (int)CommandType.NightLight ? onoff(item.Data.NightLightActive) :
                     item.Command == (int)CommandType.PanelLock ? onoff(item.Data.PanelLockActive) :
-                    item.Command == (int)CommandType.WaitTime ? item.Data.CleanCycleWaitTimeMinutes.ToString() :
+                    item.Command == (int)CommandType.WaitTime ? waitTime(item.Data.CleanCycleWaitTimeMinutes) :
+                    item.Command == (int)CommandType.Sleep ? sleepTime(item.Data.SleepMode) :
                     string.Empty
                 );
             return cmd;

@@ -11,5 +11,6 @@ namespace LitterRobot.Models.Shared
         NightLight,
         PanelLock,
         WaitTime,
+        Sleep,
     }
 }

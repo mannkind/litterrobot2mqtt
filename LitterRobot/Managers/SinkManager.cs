@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using LitterRobot.Models.Shared;
 using TwoMQTT.Core;
 using TwoMQTT.Core.Managers;
+using System;
 
 namespace LitterRobot.Managers
 {
@@ -45,6 +46,8 @@ namespace LitterRobot.Managers
                     this.CommandTopic(input.Slug, nameof(Resource.Cycle)),
                     this.CommandTopic(input.Slug, nameof(Resource.NightLightActive)),
                     this.CommandTopic(input.Slug, nameof(Resource.PanelLockActive)),
+                    this.CommandTopic(input.Slug, nameof(Resource.CleanCycleWaitTimeMinutes)),
+                    this.CommandTopic(input.Slug, nameof(Resource.SleepModeActive)),
                 };
 
                 tasks.Add(this.SubscribeAsync(topics, cancellationToken));
@@ -96,6 +99,14 @@ namespace LitterRobot.Managers
                     case string s when s == this.CommandTopic(input.Slug, nameof(Resource.PanelLockActive)):
                         cmd.Command = (int)CommandType.PanelLock;
                         cmd.Data.PanelLockActive = payload == Const.ON;
+                        break;
+                    case string s when s == this.CommandTopic(input.Slug, nameof(Resource.CleanCycleWaitTimeMinutes)):
+                        cmd.Command = (int)CommandType.WaitTime;
+                        cmd.Data.CleanCycleWaitTimeMinutes = long.TryParse(payload, out var ccwtm) ? ccwtm : 0;
+                        break;
+                    case string s when s == this.CommandTopic(input.Slug, nameof(Resource.SleepModeActive)):
+                        cmd.Command = (int)CommandType.Sleep;
+                        cmd.Data.SleepMode = payload;
                         break;
                 }
 
@@ -187,8 +198,8 @@ namespace LitterRobot.Managers
                 new { Sensor = nameof(Resource.Cycle), Type = switchConst, Icon = "mdi:rotate-left" },
                 new { Sensor = nameof(Resource.NightLightActive), Type = switchConst, Icon = "mdi:lightbulb" },
                 new { Sensor = nameof(Resource.PanelLockActive), Type = switchConst, Icon = "mdi:lock" },
-                new { Sensor = nameof(Resource.DFITriggered), Type = Const.BINARY_SENSOR, Icon = "mdi:delete-empty" },
-                new { Sensor = nameof(Resource.SleepModeActive), Type = Const.BINARY_SENSOR, Icon = "mdi:sleep" },
+                new { Sensor = nameof(Resource.DFITriggered), Type = Const.BINARY_SENSOR, Icon = "problem" },
+                new { Sensor = nameof(Resource.SleepModeActive), Type = switchConst, Icon = "mdi:sleep" },
                 new { Sensor = nameof(Resource.SleepMode), Type = Const.SENSOR, Icon = "mdi:sleep" },
             };
 
@@ -201,9 +212,14 @@ namespace LitterRobot.Managers
                     {
                         discovery.CommandTopic = this.CommandTopic(input.Slug, map.Sensor);
                     }
-                    if (!string.IsNullOrEmpty(map.Icon))
+
+                    if (map.Type != Const.BINARY_SENSOR && !string.IsNullOrEmpty(map.Icon))
                     {
                         discovery.Icon = map.Icon;
+                    }
+                    else if (map.Type == Const.BINARY_SENSOR && !string.IsNullOrEmpty(map.Icon))
+                    {
+                        discovery.DeviceClass = map.Icon;
                     }
 
                     tasks.Add(this.PublishDiscoveryAsync(input.Slug, map.Sensor, map.Type, discovery, cancellationToken));
