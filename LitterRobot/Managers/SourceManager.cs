@@ -41,30 +41,42 @@ namespace LitterRobot.Managers
         }
 
         /// <inheritdoc />
-        protected override Resource MapResponse(FetchResponse src) =>
-            new Resource
+        protected override Resource MapResponse(FetchResponse src)
+        {
+            var sleepModeActive = src.SleepModeActive.Substring(0, 1) == Resource.ON_ONE;
+            var sleepMode = string.Empty;
+            if (sleepModeActive)
+            {
+                var smParts = src.SleepModeActive.Substring(1).Split(":");
+                var smFormat = "hh:mm tt";
+                var smDate = DateTime.Now - new TimeSpan(int.Parse(smParts[0]), int.Parse(smParts[1]), int.Parse(smParts[2]));
+                sleepMode = $"{smDate.ToString(smFormat)} to {smDate.AddHours(8).ToString(smFormat)}";
+            }
+
+            return new Resource
             {
                 LitterRobotId = src.LitterRobotId,
                 LitterRobotSerial = src.LitterRobotSerial,
                 LitterRobotNickname = src.LitterRobotNickname,
                 PowerStatus = src.PowerStatus,
                 UnitStatus = src.UnitStatus,
-                UnitStatusText = this.StatusMapping.ContainsKey(src.UnitStatus) ? 
-                    this.StatusMapping[src.UnitStatus] : 
+                UnitStatusText = this.StatusMapping.ContainsKey(src.UnitStatus) ?
+                    this.StatusMapping[src.UnitStatus] :
                     src.UnitStatus,
                 Power = src.SleepModeActive != Resource.ON_ONE && src.UnitStatus != Const.OFF,
                 Cycle = src.SleepModeActive != Resource.ON_ONE && src.UnitStatus.StartsWith(Resource.CC),
                 CleanCycleWaitTimeMinutes = src.CleanCycleWaitTimeMinutes,
                 PanelLockActive = src.PanelLockActive == Resource.ON_ONE,
                 NightLightActive = src.NightLightActive == Resource.ON_ONE,
-                SleepModeActive = src.SleepModeActive == Resource.ON_ONE,
-                SleepMode = src.SleepModeActive == Resource.ON_ONE ? src.SleepModeActive.Substring(1) : string.Empty,
+                SleepModeActive = sleepModeActive,
+                SleepMode = sleepMode,
                 DFITriggered = src.IsDFITriggered == Resource.ON_ONE,
                 CycleCount = src.CycleCount,
                 CycleCapacity = src.CycleCapacity,
                 CyclesAfterDrawerFull = src.CyclesAfterDrawerFull,
                 DFICycleCount = src.DFICycleCount,
             };
+        }
 
 
         /// <summary>

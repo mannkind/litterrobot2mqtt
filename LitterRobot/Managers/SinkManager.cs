@@ -157,6 +157,10 @@ namespace LitterRobot.Managers
                 this.PublishAsync(
                     this.StateTopic(slug, nameof(Resource.SleepModeActive)), this.BooleanOnOff(input.SleepModeActive),
                     cancellationToken
+                ),
+                this.PublishAsync(
+                    this.StateTopic(slug, nameof(Resource.SleepMode)), input.SleepMode,
+                    cancellationToken
                 )
             );
 
@@ -185,6 +189,7 @@ namespace LitterRobot.Managers
                 new { Sensor = nameof(Resource.PanelLockActive), Type = switchConst, Icon = "mdi:lock" },
                 new { Sensor = nameof(Resource.DFITriggered), Type = Const.BINARY_SENSOR, Icon = "mdi:delete-empty" },
                 new { Sensor = nameof(Resource.SleepModeActive), Type = Const.BINARY_SENSOR, Icon = "mdi:sleep" },
+                new { Sensor = nameof(Resource.SleepMode), Type = Const.SENSOR, Icon = "mdi:sleep" },
             };
 
             foreach (var input in this.Questions)
