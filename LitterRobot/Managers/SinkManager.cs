@@ -201,6 +201,11 @@ namespace LitterRobot.Managers
                     {
                         discovery.CommandTopic = this.CommandTopic(input.Slug, map.Sensor);
                     }
+                    if (!string.IsNullOrEmpty(map.Icon))
+                    {
+                        discovery.Icon = map.Icon;
+                    }
+
                     tasks.Add(this.PublishDiscoveryAsync(input.Slug, map.Sensor, map.Type, discovery, cancellationToken));
                 }
             }
