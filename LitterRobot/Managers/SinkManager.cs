@@ -30,7 +30,7 @@ namespace LitterRobot.Managers
         public SinkManager(ILogger<SinkManager> logger, IOptions<Opts> sharedOpts,
             IOptions<Models.SinkManager.Opts> opts, ChannelReader<Resource> incomingData,
             ChannelWriter<Command> outgoingCommand) :
-            base(logger, opts, incomingData, outgoingCommand, sharedOpts.Value.Resources)
+            base(logger, opts, incomingData, outgoingCommand, sharedOpts.Value.Resources, string.Empty)
         {
         }
 
@@ -187,19 +187,18 @@ namespace LitterRobot.Managers
 
             var tasks = new List<Task>();
             var assembly = Assembly.GetAssembly(typeof(Program))?.GetName() ?? new AssemblyName();
-            const string switchConst = "switch";
             var mapping = new[]
             {
                 new { Sensor = nameof(Resource.LitterRobotId), Type = Const.SENSOR, Icon = "mdi:identifier" },
                 new { Sensor = nameof(Resource.PowerStatus), Type = Const.SENSOR, Icon = "mdi:power-settings" },
                 new { Sensor = nameof(Resource.UnitStatus), Type = Const.SENSOR, Icon = "mdi:robot" },
                 new { Sensor = nameof(Resource.UnitStatusText), Type = Const.SENSOR, Icon = "mdi:robot" },
-                new { Sensor = nameof(Resource.Power), Type = switchConst, Icon = "mdi:power" },
-                new { Sensor = nameof(Resource.Cycle), Type = switchConst, Icon = "mdi:rotate-left" },
-                new { Sensor = nameof(Resource.NightLightActive), Type = switchConst, Icon = "mdi:lightbulb" },
-                new { Sensor = nameof(Resource.PanelLockActive), Type = switchConst, Icon = "mdi:lock" },
+                new { Sensor = nameof(Resource.Power), Type = Const.SWITCH, Icon = "mdi:power" },
+                new { Sensor = nameof(Resource.Cycle), Type = Const.SWITCH, Icon = "mdi:rotate-left" },
+                new { Sensor = nameof(Resource.NightLightActive), Type = Const.SWITCH, Icon = "mdi:lightbulb" },
+                new { Sensor = nameof(Resource.PanelLockActive), Type = Const.SWITCH, Icon = "mdi:lock" },
                 new { Sensor = nameof(Resource.DFITriggered), Type = Const.BINARY_SENSOR, Icon = "problem" },
-                new { Sensor = nameof(Resource.SleepModeActive), Type = switchConst, Icon = "mdi:sleep" },
+                new { Sensor = nameof(Resource.SleepModeActive), Type = Const.SWITCH, Icon = "mdi:sleep" },
                 new { Sensor = nameof(Resource.SleepMode), Type = Const.SENSOR, Icon = "mdi:sleep" },
             };
 
@@ -208,7 +207,7 @@ namespace LitterRobot.Managers
                 foreach (var map in mapping)
                 {
                     var discovery = this.BuildDiscovery(input.Slug, map.Sensor, assembly, false);
-                    if (map.Type == switchConst)
+                    if (map.Type == Const.SWITCH)
                     {
                         discovery.CommandTopic = this.CommandTopic(input.Slug, map.Sensor);
                     }

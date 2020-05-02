@@ -22,22 +22,9 @@ namespace LitterRobot.Managers
     public class SourceManager : HTTPPollingManager<SlugMapping, FetchResponse, object, Resource, Command>
     {
         public SourceManager(ILogger<SourceManager> logger, IOptions<Models.Shared.Opts> sharedOpts, IOptions<Models.SourceManager.Opts> opts, ChannelWriter<Resource> outgoing, ChannelReader<Command> incoming, IHTTPSourceDAO<SlugMapping, Command, Models.SourceManager.FetchResponse, object> sourceDAO, IHttpClientFactory httpClientFactory) :
-            base(logger, outgoing, incoming, sharedOpts.Value.Resources, opts.Value.PollingInterval, sourceDAO)
+            base(logger, outgoing, incoming, sharedOpts.Value.Resources, opts.Value.PollingInterval, sourceDAO,
+                SourceSettings(sharedOpts.Value, opts.Value))
         {
-            this.Opts = opts.Value;
-            this.SharedOpts = sharedOpts.Value;
-        }
-
-        /// <inheritdoc />
-        protected override void LogSettings()
-        {
-            this.Logger.LogInformation(
-                $"Login: {this.Opts.Login}\n" +
-                $"Password: {(!string.IsNullOrEmpty(this.Opts.Password) ? "<REDACTED>" : string.Empty)}\n" +
-                $"PollingInterval: {this.PollingInterval}\n" +
-                $"Resources: {string.Join(',', this.Questions.Select(x => $"{x.LRID}:{x.Slug}"))}\n" +
-                $""
-            );
         }
 
         /// <inheritdoc />
@@ -78,17 +65,6 @@ namespace LitterRobot.Managers
             };
         }
 
-
-        /// <summary>
-        /// The options for the source.
-        /// </summary>
-        private readonly Models.SourceManager.Opts Opts;
-
-        /// <summary>
-        /// The options that are shared.
-        /// </summary>
-        private readonly Models.Shared.Opts SharedOpts;
-
         /// <summary>
         /// The translation between machine codes and human-readable statuses.
         /// </summary>
@@ -108,5 +84,12 @@ namespace LitterRobot.Managers
             { "CCC", "Cycle complete" },
             { "EC",  "Emptying container" },
         };
+
+        private static string SourceSettings(Models.Shared.Opts sharedOpts, Models.SourceManager.Opts opts) =>
+            $"Login: {opts.Login}\n" +
+            $"Password: {(!string.IsNullOrEmpty(opts.Password) ? "<REDACTED>" : string.Empty)}\n" +
+            $"PollingInterval: {opts.PollingInterval}\n" +
+            $"Resources: {string.Join(',', sharedOpts.Resources.Select(x => $"{x.LRID}:{x.Slug}"))}\n" +
+            $"";
     }
 }
