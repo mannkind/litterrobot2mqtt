@@ -53,7 +53,7 @@ namespace LitterRobot.Models.SourceManager
         /// 
         /// </summary>
         /// <value></value>
-        public long CleanCycleWaitTimeMinutes { get; set; } = long.MinValue;
+        public string CleanCycleWaitTimeMinutes { get; set; } = string.Empty;
 
         /// <summary>
         /// 

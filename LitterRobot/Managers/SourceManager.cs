@@ -40,6 +40,14 @@ namespace LitterRobot.Managers
                 sleepMode = $"{smDate.ToString(smFormat)} to {smDate.AddHours(8).ToString(smFormat)}";
             }
 
+            var ccwtm = src.CleanCycleWaitTimeMinutes switch
+            {
+                "3" => 3,
+                "7" => 7,
+                "F" => 15,
+                _ => 0,
+            };
+
             return new Resource
             {
                 LitterRobotId = src.LitterRobotId,
@@ -52,7 +60,7 @@ namespace LitterRobot.Managers
                     src.UnitStatus,
                 Power = src.SleepModeActive != Resource.ON_ONE && src.UnitStatus != Const.OFF,
                 Cycle = src.SleepModeActive != Resource.ON_ONE && src.UnitStatus.StartsWith(Resource.CC),
-                CleanCycleWaitTimeMinutes = src.CleanCycleWaitTimeMinutes,
+                CleanCycleWaitTimeMinutes = ccwtm,
                 PanelLockActive = src.PanelLockActive == Resource.ON_ONE,
                 NightLightActive = src.NightLightActive == Resource.ON_ONE,
                 SleepModeActive = sleepModeActive,
