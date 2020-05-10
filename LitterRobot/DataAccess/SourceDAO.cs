@@ -73,6 +73,7 @@ namespace LitterRobot.DataAccess
                           e is JsonException ? "Unable to serialize request to the Litter Robot API" :
                           "Unable to send to the Litter Robot API";
                 this.Logger.LogError(msg, e);
+                this.RemoveCachedLogin();
                 return null;
             }
         }
@@ -284,6 +285,15 @@ namespace LitterRobot.DataAccess
 
             this.Cache.Set(this.CacheKey(TYPEUSERID), userid, cacheOpts);
             this.Cache.Set(this.CacheKey(TYPETOKEN), token, cacheOpts);
+        }
+
+        /// <summary>
+        /// Cache the login
+        /// </summary>
+        private void RemoveCachedLogin()
+        {
+            this.Cache.Remove(this.CacheKey(TYPEUSERID));
+            this.Cache.Remove(this.CacheKey(TYPETOKEN));
         }
 
         /// <summary>
