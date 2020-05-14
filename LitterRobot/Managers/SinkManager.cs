@@ -68,8 +68,10 @@ namespace LitterRobot.Managers
                     .Select(x => x.LRID)
                     .FirstOrDefault() ?? string.Empty;
 
+                this.Logger.LogDebug($"Found {litterRobotId} for incoming data for {input.Slug}");
                 if (string.IsNullOrEmpty(litterRobotId))
                 {
+                    this.Logger.LogDebug($"Unable to find litterRobotId for {input.Slug}");
                     continue;
                 }
 
@@ -110,7 +112,9 @@ namespace LitterRobot.Managers
                         break;
                 }
 
+                this.Logger.LogDebug($"Started publishing command for litterRobitId {litterRobotId}");
                 await this.OutgoingCommand.WriteAsync(cmd, cancellationToken);
+                this.Logger.LogDebug($"Finished publishing command for litterRobitId {litterRobotId}");
             }
         }
 
@@ -123,11 +127,14 @@ namespace LitterRobot.Managers
                 .Select(x => x.Slug)
                 .FirstOrDefault() ?? string.Empty;
 
+            this.Logger.LogDebug($"Found slug {slug} for incoming data for {input.LitterRobotId}");
             if (string.IsNullOrEmpty(slug))
             {
+                this.Logger.LogDebug($"Unable to find slug for {input.LitterRobotId}");
                 return;
             }
 
+            this.Logger.LogDebug($"Started publishing data for slug {slug}");
             await Task.WhenAll(
                 this.PublishAsync(
                     this.StateTopic(slug, nameof(Resource.LitterRobotId)), input.LitterRobotId,
@@ -174,7 +181,7 @@ namespace LitterRobot.Managers
                     cancellationToken
                 )
             );
-
+            this.Logger.LogDebug($"Finished publishing data for slug {slug}");
         }
 
         /// <inheritdoc />
@@ -206,6 +213,7 @@ namespace LitterRobot.Managers
             {
                 foreach (var map in mapping)
                 {
+                    this.Logger.LogDebug($"Generating discovery for {input.LRID} - {map.Sensor}");
                     var discovery = this.BuildDiscovery(input.Slug, map.Sensor, assembly, false);
                     if (map.Type == Const.SWITCH)
                     {
