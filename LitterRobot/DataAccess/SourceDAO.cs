@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using LitterRobot.Models.Shared;
 using Newtonsoft.Json;
@@ -24,17 +23,18 @@ namespace LitterRobot.DataAccess
         /// Initializes a new instance of the SourceDAO class.
         /// </summary>
         /// <param name="logger"></param>
-        /// <param name="opts"></param>
         /// <param name="httpClientFactory"></param>
         /// <param name="cache"></param>
+        /// <param name="apiKey"></param>
+        /// <param name="login"></param>
+        /// <param name="password"></param>
         /// <returns></returns>
-        public SourceDAO(ILogger<SourceDAO> logger, IOptions<Models.SourceManager.Opts> opts,
-            IHttpClientFactory httpClientFactory, IMemoryCache cache) :
+        public SourceDAO(ILogger<SourceDAO> logger, IHttpClientFactory httpClientFactory, IMemoryCache cache, string apiKey, string login, string password) :
             base(logger, httpClientFactory)
         {
-            this.ApiKey = opts.Value.ApiKey;
-            this.Login = opts.Value.Login;
-            this.Password = opts.Value.Password;
+            this.ApiKey = apiKey;
+            this.Login = login;
+            this.Password = password;
             this.Cache = cache;
             this.ResponseObjCacheExpiration = new TimeSpan(0, 0, 17);
             this.LoginCacheExpiration = new TimeSpan(24, 0, 31);

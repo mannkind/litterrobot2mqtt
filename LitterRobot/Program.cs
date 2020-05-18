@@ -12,6 +12,8 @@ using System;
 using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.Collections.Generic;
+using Microsoft.Extensions.Options;
+using System.Net.Http;
 
 namespace LitterRobot
 {
@@ -30,16 +32,21 @@ namespace LitterRobot
             var sourceSect = hostContext.Configuration.GetSection(Models.SourceManager.Opts.Section);
             var sinkSect = hostContext.Configuration.GetSection(Models.SinkManager.Opts.Section);
 
-            services.AddHttpClient<SourceManager>();
-
-            services.AddMemoryCache();
             services.AddHttpClient<IHTTPSourceDAO<SlugMapping, Command, Models.SourceManager.FetchResponse, object>>();
-            services.AddTransient<IHTTPSourceDAO<SlugMapping, Command, Models.SourceManager.FetchResponse, object>, SourceDAO>();
 
             return services
+                .AddMemoryCache()
                 .Configure<Models.Shared.Opts>(sharedSect)
                 .Configure<Models.SourceManager.Opts>(sourceSect)
                 .Configure<Models.SinkManager.Opts>(sinkSect)
+                .AddTransient<IHTTPSourceDAO<SlugMapping, Command, Models.SourceManager.FetchResponse, object>>(x =>
+                {
+                    var opts = x.GetService<IOptions<Models.SourceManager.Opts>>();
+                    return new SourceDAO(
+                        x.GetService<ILogger<SourceDAO>>(), x.GetService<IHttpClientFactory>(), x.GetService<IMemoryCache>(),
+                        opts.Value.ApiKey, opts.Value.Login, opts.Value.Password
+                    );
+                })
                 .ConfigureBidirectionalSourceSink<Resource, Command, SourceManager, SinkManager>();
         }
 
