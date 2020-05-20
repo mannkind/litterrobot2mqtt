@@ -44,7 +44,7 @@ namespace LitterRobot
                     var opts = x.GetService<IOptions<Models.SourceManager.Opts>>();
                     return new SourceDAO(
                         x.GetService<ILogger<SourceDAO>>(), x.GetService<IHttpClientFactory>(), x.GetService<IMemoryCache>(),
-                        opts.Value.ApiKey, opts.Value.Login, opts.Value.Password
+                        opts.Value.Login, opts.Value.Password
                     );
                 })
                 .ConfigureBidirectionalSourceSink<Resource, Command, SourceManager, SinkManager>();

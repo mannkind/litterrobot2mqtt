@@ -11,6 +11,8 @@ using LitterRobot.Models.Shared;
 using Newtonsoft.Json;
 using TwoMQTT.Core.DataAccess;
 using TwoMQTT.Core;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 
 namespace LitterRobot.DataAccess
 {
@@ -29,15 +31,14 @@ namespace LitterRobot.DataAccess
         /// <param name="login"></param>
         /// <param name="password"></param>
         /// <returns></returns>
-        public SourceDAO(ILogger<SourceDAO> logger, IHttpClientFactory httpClientFactory, IMemoryCache cache, string apiKey, string login, string password) :
+        public SourceDAO(ILogger<SourceDAO> logger, IHttpClientFactory httpClientFactory, IMemoryCache cache, string login, string password) :
             base(logger, httpClientFactory)
         {
-            this.ApiKey = apiKey;
             this.Login = login;
             this.Password = password;
             this.Cache = cache;
             this.ResponseObjCacheExpiration = new TimeSpan(0, 0, 17);
-            this.LoginCacheExpiration = new TimeSpan(24, 0, 31);
+            this.LoginCacheExpiration = new TimeSpan(0, 51, 31);
         }
 
         /// <inheritdoc />
@@ -94,11 +95,6 @@ namespace LitterRobot.DataAccess
         private readonly TimeSpan LoginCacheExpiration;
 
         /// <summary>
-        /// The API Key to access the source.
-        /// </summary>
-        private readonly string ApiKey;
-
-        /// <summary>
         /// The Login to access the source.
         /// </summary>
         private readonly string Login;
@@ -126,9 +122,9 @@ namespace LitterRobot.DataAccess
             // Setup request + headers
             var request = new HttpRequestMessage(method, baseUrl);
             request.Headers.TryAddWithoutValidation("Content-Type", "application/json");
-            request.Headers.TryAddWithoutValidation("x-api-key", this.ApiKey);
             if (!string.IsNullOrEmpty(token))
             {
+                request.Headers.TryAddWithoutValidation("x-api-key", APIKEY);
                 request.Headers.TryAddWithoutValidation("Authorization", token);
             }
 
@@ -163,17 +159,27 @@ namespace LitterRobot.DataAccess
 
                 // Hit the API
                 var baseUrl = LOGINURL;
-                var apiLogin = new APILogin { email = this.Login, password = this.Password, };
-                var request = this.Request(HttpMethod.Post, baseUrl, apiLogin);
-                var resp = await this.Client.SendAsync(request, cancellationToken);
+                var apiLogin = new List<KeyValuePair<string, string>>
+                {
+                    new KeyValuePair<string, string>("client_id", OAUTH_CLIENT_ID),
+                    new KeyValuePair<string, string>("client_secret", OAUTH_CLIENT_SECRET),
+                    new KeyValuePair<string, string>("grant_type", "password"),
+                    new KeyValuePair<string, string>("username", this.Login),
+                    new KeyValuePair<string, string>("password", this.Password),
+                };
+                //var request = this.Request(HttpMethod.Post, baseUrl, apiLogin);
+                var resp = await this.Client.PostAsync(baseUrl, new FormUrlEncodedContent(apiLogin), cancellationToken);
                 resp.EnsureSuccessStatusCode();
                 var content = await resp.Content.ReadAsStringAsync();
                 var obj = JsonConvert.DeserializeObject<APILoginResponse>(content);
+                var jwt = new JwtSecurityToken(jwtEncodedString: obj.Access_Token);
+                var jwtUserId = jwt.Claims.FirstOrDefault(x => x.Type == "userId").Value;
+                var accessToken = obj.Access_Token;
 
-                this.CacheLogin(obj.User.UserID, obj.Token);
+                this.CacheLogin(jwtUserId, accessToken);
 
                 this.Logger.LogDebug($"Finished login proccess to LR");
-                return (obj.User.UserID, obj.Token);
+                return (jwtUserId, accessToken);
             }
             finally
             {
@@ -336,22 +342,22 @@ namespace LitterRobot.DataAccess
         /// <summary>
         /// The base API url to access the source.
         /// </summary>
-        private const string APIURL = "https://muvnkjeut7.execute-api.us-east-1.amazonaws.com/staging";
+        private const string APIURL = "https://v2.api.whisker.iothings.site";
 
         /// <summary>
         /// The url to login to the source.
         /// </summary>
-        private const string LOGINURL = APIURL + "/login";
+        private const string LOGINURL = "https://autopets.sso.iothings.site/oauth/token";
 
         /// <summary>
         /// The url to get status from the source.
         /// </summary>
-        private const string STATUSURL = APIURL + "/users/{0}/litter-robots";
+        private const string STATUSURL = APIURL + "/users/{0}/robots";
 
         /// <summary>
         /// The url to send commands to access the source.
         /// </summary>
-        private const string COMMANDURL = APIURL + "/users/{0}/litter-robots/{1}/dispatch-commands";
+        private const string COMMANDURL = APIURL + "/users/{0}/robots/{1}/dispatch-commands";
 
         /// <summary>
         /// The key to cache litter robot objects.
@@ -368,14 +374,19 @@ namespace LitterRobot.DataAccess
         /// </summary>
         private const string TYPETOKEN = "TOKEN";
 
+        private const string APIKEY = "p7ndMoj61npRZP5CVz9v4Uj0bG769xy6758QRBPb";
+        private const string OAUTH_CLIENT_ID = "IYXzWN908psOm7sNpe4G.ios.whisker.robots";
+        private const string OAUTH_CLIENT_SECRET = "C63CLXOmwNaqLTB2xXo6QIWGwwBamcPuaul";
 
         /// <summary>
         /// 
         /// </summary>
         private class APILogin
         {
-            public string email { get; set; } = string.Empty;
-            public string oneSignalPlayerId { get; set; } = "0";
+            public string client_id { get; set; } = string.Empty;
+            public string client_secret { get; set; } = string.Empty;
+            public string grant_type { get; set; } = string.Empty;
+            public string username { get; set; } = string.Empty;
             public string password { get; set; } = string.Empty;
         }
 
@@ -393,25 +404,10 @@ namespace LitterRobot.DataAccess
         /// </summary>
         private class APILoginResponse
         {
-            public string Status { get; set; } = string.Empty;
-            public string DeveloperMessage { get; set; } = string.Empty;
-            public string Created { get; set; } = string.Empty;
-            public string URI { get; set; } = string.Empty;
-            public string RequestID { get; set; } = string.Empty;
-            public string Token { get; set; } = string.Empty;
-            public string IdentityID { get; set; } = string.Empty;
-            public ResponseUser User { get; set; } = new ResponseUser();
 
-            /// <summary>
-            /// 
-            /// </summary>
-            public class ResponseUser
-            {
-                public string LastName { get; set; } = string.Empty;
-                public string UserEmail { get; set; } = string.Empty;
-                public string UserID { get; set; } = string.Empty;
-                public string FirstName { get; set; } = string.Empty;
-            }
+            public string Access_Token { get; set; } = string.Empty;
+            public string Refresh_Token { get; set; } = string.Empty;
+            public int Expires_In { get; set; } = 3600;
         }
     }
 }
