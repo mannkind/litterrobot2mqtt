@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -9,17 +11,15 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using LitterRobot.Models.Shared;
 using Newtonsoft.Json;
-using TwoMQTT.Core.DataAccess;
 using TwoMQTT.Core;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
+using TwoMQTT.Core.DataAccess;
 
 namespace LitterRobot.DataAccess
 {
     /// <summary>
     /// An class representing a managed way to interact with a source.
     /// </summary>
-    public class SourceDAO : HTTPSourceDAO<SlugMapping, Command, Models.SourceManager.FetchResponse, object>
+    public class SourceDAO : SourceDAO<SlugMapping, Command, Models.SourceManager.FetchResponse, object>
     {
         /// <summary>
         /// Initializes a new instance of the SourceDAO class.
@@ -32,11 +32,12 @@ namespace LitterRobot.DataAccess
         /// <param name="password"></param>
         /// <returns></returns>
         public SourceDAO(ILogger<SourceDAO> logger, IHttpClientFactory httpClientFactory, IMemoryCache cache, string login, string password) :
-            base(logger, httpClientFactory)
+            base(logger)
         {
             this.Login = login;
             this.Password = password;
             this.Cache = cache;
+            this.Client = httpClientFactory.CreateClient();
             this.ResponseObjCacheExpiration = new TimeSpan(0, 0, 17);
             this.LoginCacheExpiration = new TimeSpan(0, 51, 31);
         }
@@ -83,6 +84,11 @@ namespace LitterRobot.DataAccess
         /// The internal cache.
         /// </summary>
         private readonly IMemoryCache Cache;
+
+        /// <summary>
+        /// The HTTP client used to access the source.
+        /// </summary>
+        private readonly HttpClient Client;
 
         /// <summary>
         /// The internal timeout for responses.

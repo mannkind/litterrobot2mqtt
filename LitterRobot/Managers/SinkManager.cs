@@ -9,7 +9,6 @@ using Microsoft.Extensions.Options;
 using LitterRobot.Models.Shared;
 using TwoMQTT.Core;
 using TwoMQTT.Core.Managers;
-using System;
 
 namespace LitterRobot.Managers
 {

@@ -2,12 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Channels;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using LitterRobot.DataAccess;
 using LitterRobot.Models.Shared;
 using LitterRobot.Models.SourceManager;
 using TwoMQTT.Core;
@@ -19,9 +16,12 @@ namespace LitterRobot.Managers
     /// <summary>
     /// An class representing a managed way to interact with a source.
     /// </summary>
-    public class SourceManager : HTTPPollingManager<SlugMapping, FetchResponse, object, Resource, Command>
+    public class SourceManager : APIPollingManager<SlugMapping, FetchResponse, object, Resource, Command>
     {
-        public SourceManager(ILogger<SourceManager> logger, IOptions<Models.Shared.Opts> sharedOpts, IOptions<Models.SourceManager.Opts> opts, ChannelWriter<Resource> outgoing, ChannelReader<Command> incoming, IHTTPSourceDAO<SlugMapping, Command, Models.SourceManager.FetchResponse, object> sourceDAO, IHttpClientFactory httpClientFactory) :
+        public SourceManager(ILogger<SourceManager> logger, IOptions<Models.Shared.Opts> sharedOpts,
+            IOptions<Models.SourceManager.Opts> opts, ChannelWriter<Resource> outgoing, ChannelReader<Command> incoming,
+            ISourceDAO<SlugMapping, Command, Models.SourceManager.FetchResponse, object> sourceDAO,
+            IHttpClientFactory httpClientFactory) :
             base(logger, outgoing, incoming, sharedOpts.Value.Resources, opts.Value.PollingInterval, sourceDAO,
                 SourceSettings(sharedOpts.Value, opts.Value))
         {
