@@ -11,7 +11,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.2.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.5.1" />
-    <PackageReference Include="twomqtt" Version="0.5.20143.16240-dev" />
+    <PackageReference Include="twomqtt" Version="0.5.*" />
   </ItemGroup>
 
 </Project>
