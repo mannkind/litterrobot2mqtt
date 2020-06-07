@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using LitterRobot.Models.Shared;
 using TwoMQTT.Core;
 using TwoMQTT.Core.Managers;
+using TwoMQTT.Core.Models;
 
 namespace LitterRobot.Managers
 {
@@ -31,28 +32,6 @@ namespace LitterRobot.Managers
             ChannelWriter<Command> outgoingCommand) :
             base(logger, opts, incomingData, outgoingCommand, sharedOpts.Value.Resources, string.Empty)
         {
-        }
-
-        /// <inheritdoc />
-        protected override async Task HandleSubscribeAsync(CancellationToken cancellationToken = default)
-        {
-            var tasks = new List<Task>();
-            foreach (var input in this.Questions)
-            {
-                var topics = new List<string>
-                {
-                    this.CommandTopic(input.Slug, nameof(Resource.Power)),
-                    this.CommandTopic(input.Slug, nameof(Resource.Cycle)),
-                    this.CommandTopic(input.Slug, nameof(Resource.NightLightActive)),
-                    this.CommandTopic(input.Slug, nameof(Resource.PanelLockActive)),
-                    this.CommandTopic(input.Slug, nameof(Resource.CleanCycleWaitTimeMinutes)),
-                    this.CommandTopic(input.Slug, nameof(Resource.SleepModeActive)),
-                };
-
-                tasks.Add(this.SubscribeAsync(topics, cancellationToken));
-            }
-
-            await Task.WhenAll(tasks);
         }
 
         /// <inheritdoc />
@@ -126,72 +105,54 @@ namespace LitterRobot.Managers
                 .Select(x => x.Slug)
                 .FirstOrDefault() ?? string.Empty;
 
-            this.Logger.LogDebug($"Found slug {slug} for incoming data for {input.LitterRobotId}");
             if (string.IsNullOrEmpty(slug))
             {
                 this.Logger.LogDebug($"Unable to find slug for {input.LitterRobotId}");
                 return;
             }
 
+            this.Logger.LogDebug($"Found slug {slug} for incoming data for {input.LitterRobotId}");
             this.Logger.LogDebug($"Started publishing data for slug {slug}");
-            await Task.WhenAll(
-                this.PublishAsync(
-                    this.StateTopic(slug, nameof(Resource.LitterRobotId)), input.LitterRobotId,
-                    cancellationToken
-                ),
-                this.PublishAsync(
-                    this.StateTopic(slug, nameof(Resource.PowerStatus)), input.PowerStatus,
-                    cancellationToken
-                ),
-                this.PublishAsync(
-                    this.StateTopic(slug, nameof(Resource.UnitStatus)), input.UnitStatus,
-                    cancellationToken
-                ),
-                this.PublishAsync(
-                    this.StateTopic(slug, nameof(Resource.UnitStatusText)), input.UnitStatusText,
-                    cancellationToken
-                ),
-                this.PublishAsync(
-                    this.StateTopic(slug, nameof(Resource.Power)), this.BooleanOnOff(input.Power),
-                    cancellationToken
-                ),
-                this.PublishAsync(
-                    this.StateTopic(slug, nameof(Resource.Cycle)), this.BooleanOnOff(input.Cycle),
-                    cancellationToken
-                ),
-                this.PublishAsync(
-                    this.StateTopic(slug, nameof(Resource.NightLightActive)), this.BooleanOnOff(input.NightLightActive),
-                    cancellationToken
-                ),
-                this.PublishAsync(
-                    this.StateTopic(slug, nameof(Resource.PanelLockActive)), this.BooleanOnOff(input.PanelLockActive),
-                    cancellationToken
-                ),
-                this.PublishAsync(
-                    this.StateTopic(slug, nameof(Resource.DFITriggered)), this.BooleanOnOff(input.DFITriggered),
-                    cancellationToken
-                ),
-                this.PublishAsync(
-                    this.StateTopic(slug, nameof(Resource.SleepModeActive)), this.BooleanOnOff(input.SleepModeActive),
-                    cancellationToken
-                ),
-                this.PublishAsync(
-                    this.StateTopic(slug, nameof(Resource.SleepMode)), input.SleepMode,
-                    cancellationToken
-                )
-            );
+            var publish = new[]
+            {
+                    (this.StateTopic(slug, nameof(Resource.LitterRobotId)), input.LitterRobotId),
+                    (this.StateTopic(slug, nameof(Resource.PowerStatus)), input.PowerStatus),
+                    (this.StateTopic(slug, nameof(Resource.UnitStatus)), input.UnitStatus),
+                    (this.StateTopic(slug, nameof(Resource.UnitStatusText)), input.UnitStatusText),
+                    (this.StateTopic(slug, nameof(Resource.Power)), this.BooleanOnOff(input.Power)),
+                    (this.StateTopic(slug, nameof(Resource.Cycle)), this.BooleanOnOff(input.Cycle)),
+                    (this.StateTopic(slug, nameof(Resource.NightLightActive)), this.BooleanOnOff(input.NightLightActive)),
+                    (this.StateTopic(slug, nameof(Resource.PanelLockActive)), this.BooleanOnOff(input.PanelLockActive)),
+                    (this.StateTopic(slug, nameof(Resource.DFITriggered)), this.BooleanOnOff(input.DFITriggered)),
+                    (this.StateTopic(slug, nameof(Resource.SleepModeActive)), this.BooleanOnOff(input.SleepModeActive)),
+                    (this.StateTopic(slug, nameof(Resource.SleepMode)), input.SleepMode),
+            };
+            await this.PublishAsync(publish, cancellationToken);
             this.Logger.LogDebug($"Finished publishing data for slug {slug}");
         }
 
+
         /// <inheritdoc />
-        protected override async Task HandleDiscoveryAsync(CancellationToken cancellationToken = default)
+        protected override IEnumerable<string> Subscriptions()
         {
-            if (!this.Opts.DiscoveryEnabled)
+            var topics = new List<string>();
+            foreach (var input in this.Questions)
             {
-                return;
+                topics.Add(this.CommandTopic(input.Slug, nameof(Resource.Power)));
+                topics.Add(this.CommandTopic(input.Slug, nameof(Resource.Cycle)));
+                topics.Add(this.CommandTopic(input.Slug, nameof(Resource.NightLightActive)));
+                topics.Add(this.CommandTopic(input.Slug, nameof(Resource.PanelLockActive)));
+                topics.Add(this.CommandTopic(input.Slug, nameof(Resource.CleanCycleWaitTimeMinutes)));
+                topics.Add(this.CommandTopic(input.Slug, nameof(Resource.SleepModeActive)));
             }
 
-            var tasks = new List<Task>();
+            return topics;
+        }
+
+        /// <inheritdoc />
+        protected override IEnumerable<(string slug, string sensor, string type, MQTTDiscovery discovery)> Discoveries()
+        {
+            var discoveries = new List<(string, string, string, MQTTDiscovery)>();
             var assembly = Assembly.GetAssembly(typeof(Program))?.GetName() ?? new AssemblyName();
             var mapping = new[]
             {
@@ -228,11 +189,11 @@ namespace LitterRobot.Managers
                         discovery.DeviceClass = map.Icon;
                     }
 
-                    tasks.Add(this.PublishDiscoveryAsync(input.Slug, map.Sensor, map.Type, discovery, cancellationToken));
+                    discoveries.Add((input.Slug, map.Sensor, map.Type, discovery));
                 }
             }
 
-            await Task.WhenAll(tasks);
+            return discoveries;
         }
     }
 }
