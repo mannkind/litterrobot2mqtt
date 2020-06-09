@@ -10,6 +10,7 @@ using LitterRobot.Models.Shared;
 using TwoMQTT.Core;
 using TwoMQTT.Core.Managers;
 using TwoMQTT.Core.Models;
+using MQTTnet.Extensions.ManagedClient;
 
 namespace LitterRobot.Managers
 {
@@ -27,10 +28,9 @@ namespace LitterRobot.Managers
         /// <param name="incomingData"></param>
         /// <param name="outgoingCommand"></param>
         /// <returns></returns>
-        public SinkManager(ILogger<SinkManager> logger, IOptions<Opts> sharedOpts,
-            IOptions<Models.SinkManager.Opts> opts, ChannelReader<Resource> incomingData,
-            ChannelWriter<Command> outgoingCommand) :
-            base(logger, opts, incomingData, outgoingCommand, sharedOpts.Value.Resources, string.Empty)
+        public SinkManager(ILogger<SinkManager> logger, IOptions<Opts> sharedOpts, IOptions<Models.SinkManager.Opts> opts,
+            IManagedMqttClient client, ChannelReader<Resource> incomingData, ChannelWriter<Command> outgoingCommand) :
+            base(logger, opts, client, incomingData, outgoingCommand, sharedOpts.Value.Resources, string.Empty)
         {
         }
 
