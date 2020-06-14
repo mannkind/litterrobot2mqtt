@@ -1,11 +1,11 @@
 using System;
 
-namespace LitterRobot.Models.SourceManager
+namespace LitterRobot.Models.Options
 {
     /// <summary>
     /// The source options
     /// </summary>
-    public class Opts
+    public class SourceOpts
     {
         public const string Section = "LitterRobot";
 
