@@ -80,6 +80,7 @@ namespace LitterRobot.Managers
         {
             { "RDY", "Ready" },
             { "OFF", "Off" },
+            { "OFFLINE", "Off" },
             { "P",   "Paused" },
             { "BR",  "Bonnet removed" },
             { "DFS", "Drawer full" },
