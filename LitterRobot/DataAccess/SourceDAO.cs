@@ -12,14 +12,32 @@ using Microsoft.Extensions.Primitives;
 using LitterRobot.Models.Shared;
 using Newtonsoft.Json;
 using TwoMQTT.Core;
-using TwoMQTT.Core.DataAccess;
 
 namespace LitterRobot.DataAccess
 {
+    public interface ISourceDAO
+    {
+        /// <summary>
+        /// Fetch one response from the source.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task<Models.Source.Response?> FetchOneAsync(SlugMapping key, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Send one command to the source.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task<object?> SendOneAsync(Command item, CancellationToken cancellationToken = default);
+    }
+
     /// <summary>
     /// An class representing a managed way to interact with a source.
     /// </summary>
-    public class SourceDAO : SourceDAO<SlugMapping, Command, Models.SourceManager.FetchResponse, object>
+    public class SourceDAO : ISourceDAO
     {
         /// <summary>
         /// Initializes a new instance of the SourceDAO class.
@@ -27,13 +45,12 @@ namespace LitterRobot.DataAccess
         /// <param name="logger"></param>
         /// <param name="httpClientFactory"></param>
         /// <param name="cache"></param>
-        /// <param name="apiKey"></param>
         /// <param name="login"></param>
         /// <param name="password"></param>
         /// <returns></returns>
-        public SourceDAO(ILogger<SourceDAO> logger, IHttpClientFactory httpClientFactory, IMemoryCache cache, string login, string password) :
-            base(logger)
+        public SourceDAO(ILogger<SourceDAO> logger, IHttpClientFactory httpClientFactory, IMemoryCache cache, string login, string password)
         {
+            this.Logger = logger;
             this.Login = login;
             this.Password = password;
             this.Cache = cache;
@@ -43,7 +60,7 @@ namespace LitterRobot.DataAccess
         }
 
         /// <inheritdoc />
-        public override async Task<Models.SourceManager.FetchResponse?> FetchOneAsync(SlugMapping key,
+        public async Task<Models.Source.Response?> FetchOneAsync(SlugMapping key,
             CancellationToken cancellationToken = default)
         {
             try
@@ -61,7 +78,7 @@ namespace LitterRobot.DataAccess
         }
 
         /// <inheritdoc />
-        public override async Task<object?> SendOneAsync(Command item, CancellationToken cancellationToken = default)
+        public async Task<object?> SendOneAsync(Command item, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -79,6 +96,11 @@ namespace LitterRobot.DataAccess
                 return null;
             }
         }
+
+        /// <summary>
+        /// The logger for internal use.
+        /// </summary>
+        private readonly ILogger<SourceDAO> Logger;
 
         /// <summary>
         /// The internal cache.
@@ -199,13 +221,13 @@ namespace LitterRobot.DataAccess
         /// <param name="litterRobotId"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        private async Task<Models.SourceManager.FetchResponse?> FetchAsync(string litterRobotId,
+        private async Task<Models.Source.Response?> FetchAsync(string litterRobotId,
             CancellationToken cancellationToken = default)
         {
             this.Logger.LogDebug($"Started finding {litterRobotId} from LR");
             // Check cache first to avoid hammering the Litter Robot API
             if (this.Cache.TryGetValue(this.CacheKey(TYPELRID, litterRobotId),
-                out Models.SourceManager.FetchResponse cachedObj))
+                out Models.Source.Response cachedObj))
             {
                 this.Logger.LogDebug($"Found {litterRobotId} from in the cache");
                 return cachedObj;
@@ -217,8 +239,8 @@ namespace LitterRobot.DataAccess
             var resp = await this.Client.SendAsync(request, cancellationToken);
             resp.EnsureSuccessStatusCode();
             var content = await resp.Content.ReadAsStringAsync();
-            var objs = JsonConvert.DeserializeObject<List<Models.SourceManager.FetchResponse>>(content);
-            Models.SourceManager.FetchResponse? specificObj = null;
+            var objs = JsonConvert.DeserializeObject<List<Models.Source.Response>>(content);
+            Models.Source.Response? specificObj = null;
             foreach (var obj in objs)
             {
                 // Cache all; return the specific one requested
@@ -327,7 +349,7 @@ namespace LitterRobot.DataAccess
         /// Cache the response
         /// </summary>
         /// <param name="obj"></param>
-        private void CacheResponse(Models.SourceManager.FetchResponse obj)
+        private void CacheResponse(Models.Source.Response obj)
         {
             var cts = new CancellationTokenSource(this.ResponseObjCacheExpiration);
             var cacheOpts = new MemoryCacheEntryOptions()
