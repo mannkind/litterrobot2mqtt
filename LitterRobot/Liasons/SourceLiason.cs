@@ -26,11 +26,15 @@ namespace LitterRobot.Liasons
             this.Questions = sharedOpts.Value.Resources;
 
             this.Logger.LogInformation(
-                $"Login: {opts.Value.Login}\n" +
-                $"Password: {(!string.IsNullOrEmpty(opts.Value.Password) ? "<REDACTED>" : string.Empty)}\n" +
-                $"PollingInterval: {opts.Value.PollingInterval}\n" +
-                $"Resources: {string.Join(',', sharedOpts.Value.Resources.Select(x => $"{x.LRID}:{x.Slug}"))}\n" +
-                $""
+                "Login: {login}\n" +
+                "Password: {password}\n" +
+                "PollingInterval: {pollingInterval}\n" +
+                "Resources: {resources}\n" +
+                "",
+                opts.Value.Login,
+                (!string.IsNullOrEmpty(opts.Value.Password) ? "<REDACTED>" : string.Empty),
+                opts.Value.PollingInterval,
+                string.Join(',', sharedOpts.Value.Resources.Select(x => $"{x.LRID}:{x.Slug}"))
             );
         }
 
@@ -39,7 +43,7 @@ namespace LitterRobot.Liasons
         {
             foreach (var key in this.Questions)
             {
-                this.Logger.LogDebug($"Looking up {key}");
+                this.Logger.LogDebug("Looking up {key}", key);
                 var result = await this.SourceDAO.FetchOneAsync(key, cancellationToken);
                 var resp = result != null ? this.MapData(result) : null;
                 yield return resp;
