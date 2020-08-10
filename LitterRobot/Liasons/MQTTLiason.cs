@@ -41,11 +41,11 @@ namespace LitterRobot.Liasons
 
             if (string.IsNullOrEmpty(slug))
             {
-                this.Logger.LogDebug($"Unable to find slug for {input.LitterRobotId}");
+                this.Logger.LogDebug("Unable to find slug for {litterRobotId}", input.LitterRobotId);
                 return results;
             }
 
-            this.Logger.LogDebug($"Found slug {slug} for incoming data for {input.LitterRobotId}");
+            this.Logger.LogDebug("Found slug {slug} for incoming data for {litterRobotId}", slug, input.LitterRobotId);
             results.AddRange(new[]
                 {
                         (this.Generator.StateTopic(slug, nameof(Resource.LitterRobotId)), input.LitterRobotId),
@@ -77,12 +77,12 @@ namespace LitterRobot.Liasons
                     .Select(x => x.LRID)
                     .FirstOrDefault() ?? string.Empty;
 
-                this.Logger.LogDebug($"Found {litterRobotId} for incoming data for {input.Slug}");
                 if (string.IsNullOrEmpty(litterRobotId))
                 {
-                    this.Logger.LogDebug($"Unable to find litterRobotId for {input.Slug}");
+                    this.Logger.LogDebug("Unable to find litterRobotId for {slug}", input.Slug);
                     continue;
                 }
+                this.Logger.LogDebug("Found {litterRobotId} for incoming data for {slug}", litterRobotId, input.Slug);
 
                 var cmd = new Command
                 {
@@ -174,7 +174,7 @@ namespace LitterRobot.Liasons
             {
                 foreach (var map in mapping)
                 {
-                    this.Logger.LogDebug($"Generating discovery for {input.LRID} - {map.Sensor}");
+                    this.Logger.LogDebug("Generating discovery for {litterRobotId} - {sensor}", input.LRID, map.Sensor);
                     var discovery = this.Generator.BuildDiscovery(input.Slug, map.Sensor, assembly, false);
                     if (map.Type == Const.SWITCH)
                     {

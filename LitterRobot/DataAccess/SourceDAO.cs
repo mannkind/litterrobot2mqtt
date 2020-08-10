@@ -172,7 +172,7 @@ namespace LitterRobot.DataAccess
         /// <returns></returns>
         private async Task<(string, string)> LoginAsync(CancellationToken cancellationToken = default)
         {
-            this.Logger.LogDebug($"Started login proccess to LR");
+            this.Logger.LogDebug("Started login proccess to LR");
             await this.LoginSemaphore.WaitAsync();
 
             try
@@ -181,7 +181,7 @@ namespace LitterRobot.DataAccess
                 if (this.Cache.TryGetValue(this.CacheKey(TYPEUSERID), out string userid) &&
                     this.Cache.TryGetValue(this.CacheKey(TYPETOKEN), out string token))
                 {
-                    this.Logger.LogDebug($"Found login credentials in cache");
+                    this.Logger.LogDebug("Found login credentials in cache");
                     return (userid, token);
                 }
 
@@ -206,7 +206,7 @@ namespace LitterRobot.DataAccess
 
                 this.CacheLogin(jwtUserId, accessToken);
 
-                this.Logger.LogDebug($"Finished login proccess to LR");
+                this.Logger.LogDebug("Finished login proccess to LR");
                 return (jwtUserId, accessToken);
             }
             finally
@@ -224,12 +224,12 @@ namespace LitterRobot.DataAccess
         private async Task<Models.Source.Response?> FetchAsync(string litterRobotId,
             CancellationToken cancellationToken = default)
         {
-            this.Logger.LogDebug($"Started finding {litterRobotId} from LR");
+            this.Logger.LogDebug("Started finding {litterRobotId} from LR", litterRobotId);
             // Check cache first to avoid hammering the Litter Robot API
             if (this.Cache.TryGetValue(this.CacheKey(TYPELRID, litterRobotId),
                 out Models.Source.Response cachedObj))
             {
-                this.Logger.LogDebug($"Found {litterRobotId} from in the cache");
+                this.Logger.LogDebug("Found {litterRobotId} from in the cache", litterRobotId);
                 return cachedObj;
             }
 
@@ -251,7 +251,7 @@ namespace LitterRobot.DataAccess
                 };
             }
 
-            this.Logger.LogDebug($"Finished finding {litterRobotId} from LR");
+            this.Logger.LogDebug("Finished finding {litterRobotId} from LR", litterRobotId);
             return specificObj;
         }
 
@@ -265,7 +265,7 @@ namespace LitterRobot.DataAccess
         private async Task<object?> SendAsync(string litterRobotId, string command,
             CancellationToken cancellationToken = default)
         {
-            this.Logger.LogDebug($"Started sending command {command} - {litterRobotId} to LR");
+            this.Logger.LogDebug("Started sending command {command} - {litterRobotId} to LR", command, litterRobotId);
 
             var (userid, token) = await this.LoginAsync(cancellationToken);
             var baseUrl = string.Format(COMMANDURL, userid, litterRobotId);
@@ -274,7 +274,7 @@ namespace LitterRobot.DataAccess
             var resp = await this.Client.SendAsync(request, cancellationToken);
             resp.EnsureSuccessStatusCode();
 
-            this.Logger.LogDebug($"Finished sending command {command} - {litterRobotId} to LR");
+            this.Logger.LogDebug("Finished sending command {command} - {litterRobotId} to LR", command, litterRobotId);
             return new object();
         }
 
@@ -295,7 +295,7 @@ namespace LitterRobot.DataAccess
         /// <returns></returns>
         private string TranslateCommand(Command item)
         {
-            this.Logger.LogDebug($"Started translating command {item}");
+            this.Logger.LogDebug("Started translating command {item}", item);
 
             // Covert from the internal Command into something LitterRobot knows about
             // Represent true = "1", false = "0"
@@ -316,7 +316,7 @@ namespace LitterRobot.DataAccess
                     string.Empty
                 );
 
-            this.Logger.LogDebug($"Finished translating command {item} into {cmd}");
+            this.Logger.LogDebug("Finished translating command {item} into {cmd}", item, cmd);
             return cmd;
         }
 
@@ -331,7 +331,7 @@ namespace LitterRobot.DataAccess
             var cacheOpts = new MemoryCacheEntryOptions()
                  .AddExpirationToken(new CancellationChangeToken(cts.Token));
 
-            this.Logger.LogDebug($"Caching LR Login");
+            this.Logger.LogDebug("Caching LR Login");
             this.Cache.Set(this.CacheKey(TYPEUSERID), userid, cacheOpts);
             this.Cache.Set(this.CacheKey(TYPETOKEN), token, cacheOpts);
         }
@@ -355,7 +355,7 @@ namespace LitterRobot.DataAccess
             var cacheOpts = new MemoryCacheEntryOptions()
                  .AddExpirationToken(new CancellationChangeToken(cts.Token));
 
-            this.Logger.LogDebug($"Started finding {obj.LitterRobotId} from LR");
+            this.Logger.LogDebug("Started finding {litterRobotId} from LR", obj.LitterRobotId);
             this.Cache.Set(this.CacheKey(TYPELRID, obj.LitterRobotId), obj, cacheOpts);
         }
 

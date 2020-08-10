@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,7 +10,6 @@ using LitterRobot.Liasons;
 using LitterRobot.Models.Shared;
 using TwoMQTT.Core;
 using TwoMQTT.Core.Extensions;
-using TwoMQTT.Core.Interfaces;
 using TwoMQTT.Core.Utils;
 using System.Collections.Generic;
 
