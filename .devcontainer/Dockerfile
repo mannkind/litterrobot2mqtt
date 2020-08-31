@@ -15,7 +15,7 @@ ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
 # [Optional] Version of Node.js to install.
-ARG INSTALL_NODE="true"
+ARG INSTALL_NODE="false"
 ARG NODE_VERSION="lts/*"
 ENV NVM_DIR=/home/vscode/.nvm
 

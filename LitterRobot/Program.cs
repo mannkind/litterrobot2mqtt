@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,8 +11,9 @@ using LitterRobot.Liasons;
 using LitterRobot.Models.Shared;
 using TwoMQTT.Core;
 using TwoMQTT.Core.Extensions;
-using TwoMQTT.Core.Utils;
-using System.Collections.Generic;
+using TwoMQTT.Core.Interfaces;
+using TwoMQTT.Core.Managers;
+using System;
 
 namespace LitterRobot
 {
@@ -50,14 +52,38 @@ namespace LitterRobot
                 .AddSingleton<IThrottleManager, ThrottleManager>(x =>
                 {
                     var opts = x.GetService<IOptions<Models.Options.SourceOpts>>();
+                    if (opts == null)
+                    {
+                        throw new ArgumentException($"{nameof(opts.Value.PollingInterval)} is required for {nameof(ThrottleManager)}.");
+                    }
+
                     return new ThrottleManager(opts.Value.PollingInterval);
                 })
                 .AddSingleton<ISourceDAO>(x =>
                 {
+                    var logger = x.GetService<ILogger<SourceDAO>>();
+                    var httpClientFactory = x.GetService<IHttpClientFactory>();
+                    var cache = x.GetService<IMemoryCache>();
                     var opts = x.GetService<IOptions<Models.Options.SourceOpts>>();
-                    return new SourceDAO(
-                        x.GetService<ILogger<SourceDAO>>(), x.GetService<IHttpClientFactory>(), x.GetService<IMemoryCache>(),
-                        opts.Value.Login, opts.Value.Password
+
+                    if (logger == null)
+                    {
+                        throw new ArgumentException($"{nameof(logger)} is required for {nameof(SourceDAO)}.");
+                    }
+                    if (httpClientFactory == null)
+                    {
+                        throw new ArgumentException($"{nameof(httpClientFactory)} is required for {nameof(SourceDAO)}.");
+                    }
+                    if (cache == null)
+                    {
+                        throw new ArgumentException($"{nameof(cache)} is required for {nameof(SourceDAO)}.");
+                    }
+                    if (opts == null)
+                    {
+                        throw new ArgumentException($"{nameof(opts.Value.Login)} and {nameof(opts.Value.Password)} are required for {nameof(SourceDAO)}.");
+                    }
+
+                    return new SourceDAO(logger, httpClientFactory, cache, opts.Value.Login, opts.Value.Password
                     );
                 });
         }
