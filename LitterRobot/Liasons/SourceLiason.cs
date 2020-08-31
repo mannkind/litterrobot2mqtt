@@ -1,69 +1,48 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using LitterRobot.DataAccess;
+using LitterRobot.Models.Options;
 using LitterRobot.Models.Shared;
 using LitterRobot.Models.Source;
 using TwoMQTT.Core;
 using TwoMQTT.Core.Interfaces;
+using TwoMQTT.Core.Liasons;
 
 namespace LitterRobot.Liasons
 {
     /// <summary>
     /// An class representing a managed way to interact with a source.
     /// </summary>
-    public class SourceLiason : ISourceLiason<Resource, Command>
+    public class SourceLiason : SourceLiasonBase<Resource, Command, SlugMapping, ISourceDAO, SharedOpts>, ISourceLiason<Resource, Command>
     {
         public SourceLiason(ILogger<SourceLiason> logger, ISourceDAO sourceDAO,
-            IOptions<Models.Options.SourceOpts> opts, IOptions<Models.Options.SharedOpts> sharedOpts)
+            IOptions<Models.Options.SourceOpts> opts, IOptions<Models.Options.SharedOpts> sharedOpts) :
+            base(logger, sourceDAO, sharedOpts)
         {
-            this.Logger = logger;
-            this.SourceDAO = sourceDAO;
-            this.Questions = sharedOpts.Value.Resources;
-
             this.Logger.LogInformation(
                 "Login: {login}\n" +
                 "Password: {password}\n" +
                 "PollingInterval: {pollingInterval}\n" +
-                "Resources: {resources}\n" +
+                "Resources: {@resources}\n" +
                 "",
                 opts.Value.Login,
                 (!string.IsNullOrEmpty(opts.Value.Password) ? "<REDACTED>" : string.Empty),
                 opts.Value.PollingInterval,
-                string.Join(',', sharedOpts.Value.Resources.Select(x => $"{x.LRID}:{x.Slug}"))
+                sharedOpts.Value.Resources
             );
         }
 
-        /// <inheritdoc />
-        public async IAsyncEnumerable<Resource?> FetchAllAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+        protected override async Task<Resource?> FetchOneAsync(SlugMapping key, CancellationToken cancellationToken)
         {
-            foreach (var key in this.Questions)
-            {
-                this.Logger.LogDebug("Looking up {key}", key);
-                var result = await this.SourceDAO.FetchOneAsync(key, cancellationToken);
-                var resp = result != null ? this.MapData(result) : null;
-                yield return resp;
-            }
+            var result = await this.SourceDAO.FetchOneAsync(key, cancellationToken);
+            var resp = result != null ? this.MapData(result) : null;
+            return resp;
         }
-
-        /// <summary>
-        /// The logger used internally.
-        /// </summary>
-        private readonly ILogger<SourceLiason> Logger;
-
-        /// <summary>
-        /// The dao used to interact with the source.
-        /// </summary>
-        private readonly ISourceDAO SourceDAO;
-
-        /// <summary>
-        /// The questions to ask the source (typically some kind of key/slug pairing).
-        /// </summary>
-        private readonly List<SlugMapping> Questions;
 
         /// <summary>
         /// The translation between machine codes and human-readable statuses.

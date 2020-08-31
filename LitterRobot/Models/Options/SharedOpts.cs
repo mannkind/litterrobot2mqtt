@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using LitterRobot.Models.Shared;
+using TwoMQTT.Core.Interfaces;
 
 namespace LitterRobot.Models.Options
 {
     /// <summary>
     /// The shared options across the application
     /// </summary>
-    public class SharedOpts
+    public class SharedOpts : ISharedOpts<SlugMapping>
     {
         public const string Section = "LitterRobot";
 

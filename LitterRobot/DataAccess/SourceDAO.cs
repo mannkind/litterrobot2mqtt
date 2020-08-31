@@ -10,28 +10,15 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using LitterRobot.Models.Shared;
+using LitterRobot.Models.Source;
 using Newtonsoft.Json;
 using TwoMQTT.Core;
+using TwoMQTT.Core.Interfaces;
 
 namespace LitterRobot.DataAccess
 {
-    public interface ISourceDAO
+    public interface ISourceDAO : ISourceDAO<SlugMapping, Response, Command, object>
     {
-        /// <summary>
-        /// Fetch one response from the source.
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        Task<Models.Source.Response?> FetchOneAsync(SlugMapping key, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Send one command to the source.
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        Task<object?> SendOneAsync(Command item, CancellationToken cancellationToken = default);
     }
 
     /// <summary>
@@ -187,13 +174,13 @@ namespace LitterRobot.DataAccess
 
                 // Hit the API
                 var baseUrl = LOGINURL;
-                var apiLogin = new List<KeyValuePair<string, string>>
+                var apiLogin = new List<KeyValuePair<string?, string?>>
                 {
-                    new KeyValuePair<string, string>("client_id", OAUTH_CLIENT_ID),
-                    new KeyValuePair<string, string>("client_secret", OAUTH_CLIENT_SECRET),
-                    new KeyValuePair<string, string>("grant_type", "password"),
-                    new KeyValuePair<string, string>("username", this.Login),
-                    new KeyValuePair<string, string>("password", this.Password),
+                    new KeyValuePair<string?, string?>("client_id", OAUTH_CLIENT_ID),
+                    new KeyValuePair<string?, string?>("client_secret", OAUTH_CLIENT_SECRET),
+                    new KeyValuePair<string?, string?>("grant_type", "password"),
+                    new KeyValuePair<string?, string?>("username", this.Login),
+                    new KeyValuePair<string?, string?>("password", this.Password),
                 };
                 //var request = this.Request(HttpMethod.Post, baseUrl, apiLogin);
                 var resp = await this.Client.PostAsync(baseUrl, new FormUrlEncodedContent(apiLogin), cancellationToken);
@@ -201,7 +188,7 @@ namespace LitterRobot.DataAccess
                 var content = await resp.Content.ReadAsStringAsync();
                 var obj = JsonConvert.DeserializeObject<APILoginResponse>(content);
                 var jwt = new JwtSecurityToken(jwtEncodedString: obj.Access_Token);
-                var jwtUserId = jwt.Claims.FirstOrDefault(x => x.Type == "userId").Value;
+                var jwtUserId = jwt.Claims.FirstOrDefault(x => x.Type == "userId")?.Value ?? string.Empty;
                 var accessToken = obj.Access_Token;
 
                 this.CacheLogin(jwtUserId, accessToken);
