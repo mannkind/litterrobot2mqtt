@@ -12,8 +12,8 @@ using Microsoft.Extensions.Primitives;
 using LitterRobot.Models.Shared;
 using LitterRobot.Models.Source;
 using Newtonsoft.Json;
-using TwoMQTT.Core;
-using TwoMQTT.Core.Interfaces;
+using TwoMQTT;
+using TwoMQTT.Interfaces;
 
 namespace LitterRobot.DataAccess
 {

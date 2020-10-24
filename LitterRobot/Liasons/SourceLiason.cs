@@ -9,9 +9,9 @@ using LitterRobot.DataAccess;
 using LitterRobot.Models.Options;
 using LitterRobot.Models.Shared;
 using LitterRobot.Models.Source;
-using TwoMQTT.Core;
-using TwoMQTT.Core.Interfaces;
-using TwoMQTT.Core.Liasons;
+using TwoMQTT;
+using TwoMQTT.Interfaces;
+using TwoMQTT.Liasons;
 
 namespace LitterRobot.Liasons
 {
@@ -40,8 +40,11 @@ namespace LitterRobot.Liasons
         protected override async Task<Resource?> FetchOneAsync(SlugMapping key, CancellationToken cancellationToken)
         {
             var result = await this.SourceDAO.FetchOneAsync(key, cancellationToken);
-            var resp = result != null ? this.MapData(result) : null;
-            return resp;
+            return result switch
+            {
+                Response => this.MapData(result),
+                _ => null,
+            };
         }
 
         /// <summary>

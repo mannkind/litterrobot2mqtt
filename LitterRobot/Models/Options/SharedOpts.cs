@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using LitterRobot.Models.Shared;
-using TwoMQTT.Core.Interfaces;
+using TwoMQTT.Interfaces;
 
 namespace LitterRobot.Models.Options
 {
