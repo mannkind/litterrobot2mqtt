@@ -47,6 +47,13 @@ namespace LitterRobot.Liasons
             };
         }
 
+        public async Task<Command?> SendCommandAsync(Command item,
+            CancellationToken cancellationToken = default)
+        {
+            await this.SourceDAO.SendOneAsync(item, cancellationToken);
+            return item;
+        }
+
         /// <summary>
         /// The translation between machine codes and human-readable statuses.
         /// </summary>

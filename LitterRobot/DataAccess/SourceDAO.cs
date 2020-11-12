@@ -301,7 +301,7 @@ namespace LitterRobot.DataAccess
                 (this.CommandMapping.ContainsKey(item.Command) ? this.CommandMapping[item.Command] : string.Empty) +
                 (
                     item.Command == (int)CommandType.Power ? onoff(item.Data.Power) :
-                    item.Command == (int)CommandType.Cycle ? onoff(item.Data.Cycle) :
+                    item.Command == (int)CommandType.Cycle ? string.Empty :
                     item.Command == (int)CommandType.NightLight ? onoff(item.Data.NightLightActive) :
                     item.Command == (int)CommandType.PanelLock ? onoff(item.Data.PanelLockActive) :
                     item.Command == (int)CommandType.WaitTime ? waitTime(item.Data.CleanCycleWaitTimeMinutes) :
