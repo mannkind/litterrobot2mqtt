@@ -12,8 +12,8 @@ using Microsoft.Extensions.Primitives;
 using LitterRobot.Models.Shared;
 using LitterRobot.Models.Source;
 using Newtonsoft.Json;
-using TwoMQTT.Core;
-using TwoMQTT.Core.Interfaces;
+using TwoMQTT;
+using TwoMQTT.Interfaces;
 
 namespace LitterRobot.DataAccess
 {
@@ -56,9 +56,12 @@ namespace LitterRobot.DataAccess
             }
             catch (Exception e)
             {
-                var msg = e is HttpRequestException ? "Unable to fetch from the Litter Robot API" :
-                          e is JsonException ? "Unable to deserialize response from the Litter Robot API" :
-                          "Unable to send to the Litter Robot API";
+                var msg = e switch
+                {
+                    HttpRequestException => "Unable to fetch from the Litter Robot API",
+                    JsonException => "Unable to deserialize response from the Litter Robot API",
+                    _ => "Unable to send to the Litter Robot API"
+                };
                 this.Logger.LogError(msg, e);
                 return null;
             }
@@ -75,9 +78,12 @@ namespace LitterRobot.DataAccess
             }
             catch (Exception e)
             {
-                var msg = e is HttpRequestException ? "Unable to send to the Litter Robot API" :
-                          e is JsonException ? "Unable to serialize request to the Litter Robot API" :
-                          "Unable to send to the Litter Robot API";
+                var msg = e switch
+                {
+                    HttpRequestException => "Unable to send to the Litter Robot API",
+                    JsonException => "Unable to serialize request to the Litter Robot API",
+                    _ => "Unable to send to the Litter Robot API"
+                };
                 this.Logger.LogError(msg, e);
                 this.RemoveCachedLogin();
                 return null;

@@ -5,11 +5,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using LitterRobot.Models.Options;
 using LitterRobot.Models.Shared;
-using TwoMQTT.Core;
-using TwoMQTT.Core.Interfaces;
-using TwoMQTT.Core.Liasons;
-using TwoMQTT.Core.Models;
-using TwoMQTT.Core.Utils;
+using TwoMQTT;
+using TwoMQTT.Interfaces;
+using TwoMQTT.Liasons;
+using TwoMQTT.Models;
+using TwoMQTT.Utils;
 
 namespace LitterRobot.Liasons
 {
@@ -95,28 +95,64 @@ namespace LitterRobot.Liasons
                 switch (topic)
                 {
                     case string s when s == this.Generator.CommandTopic(input.Slug, nameof(Resource.Power)):
-                        cmd.Command = (int)CommandType.Power;
-                        cmd.Data.Power = payload == Const.ON;
+                        cmd = cmd with
+                        {
+                            Command = (int)CommandType.Power,
+                            Data = cmd.Data with
+                            {
+                                Power = payload == Const.ON,
+                            }
+                        };
                         break;
                     case string s when s == this.Generator.CommandTopic(input.Slug, nameof(Resource.Cycle)):
-                        cmd.Command = (int)CommandType.Cycle;
-                        cmd.Data.Cycle = payload == Const.ON;
+                        cmd = cmd with
+                        {
+                            Command = (int)CommandType.Cycle,
+                            Data = cmd.Data with
+                            {
+                                Cycle = payload == Const.ON,
+                            }
+                        };
                         break;
                     case string s when s == this.Generator.CommandTopic(input.Slug, nameof(Resource.NightLightActive)):
-                        cmd.Command = (int)CommandType.NightLight;
-                        cmd.Data.NightLightActive = payload == Const.ON;
+                        cmd = cmd with
+                        {
+                            Command = (int)CommandType.NightLight,
+                            Data = cmd.Data with
+                            {
+                                NightLightActive = payload == Const.ON,
+                            }
+                        };
                         break;
                     case string s when s == this.Generator.CommandTopic(input.Slug, nameof(Resource.PanelLockActive)):
-                        cmd.Command = (int)CommandType.PanelLock;
-                        cmd.Data.PanelLockActive = payload == Const.ON;
+                        cmd = cmd with
+                        {
+                            Command = (int)CommandType.PanelLock,
+                            Data = cmd.Data with
+                            {
+                                PanelLockActive = payload == Const.ON,
+                            }
+                        };
                         break;
                     case string s when s == this.Generator.CommandTopic(input.Slug, nameof(Resource.CleanCycleWaitTimeMinutes)):
-                        cmd.Command = (int)CommandType.WaitTime;
-                        cmd.Data.CleanCycleWaitTimeMinutes = long.TryParse(payload, out var ccwtm) ? ccwtm : 0;
+                        cmd = cmd with
+                        {
+                            Command = (int)CommandType.WaitTime,
+                            Data = cmd.Data with
+                            {
+                                CleanCycleWaitTimeMinutes = long.TryParse(payload, out var ccwtm) ? ccwtm : 0,
+                            }
+                        };
                         break;
                     case string s when s == this.Generator.CommandTopic(input.Slug, nameof(Resource.SleepModeActive)):
-                        cmd.Command = (int)CommandType.Sleep;
-                        cmd.Data.SleepMode = payload;
+                        cmd = cmd with
+                        {
+                            Command = (int)CommandType.Sleep,
+                            Data = cmd.Data with
+                            {
+                                SleepMode = payload,
+                            }
+                        };
                         break;
                 }
 
@@ -177,16 +213,25 @@ namespace LitterRobot.Liasons
                     var discovery = this.Generator.BuildDiscovery(input.Slug, map.Sensor, assembly, false);
                     if (map.Type == Const.SWITCH)
                     {
-                        discovery.CommandTopic = this.Generator.CommandTopic(input.Slug, map.Sensor);
+                        discovery = discovery with
+                        {
+                            CommandTopic = this.Generator.CommandTopic(input.Slug, map.Sensor),
+                        };
                     }
 
                     if (map.Type != Const.BINARY_SENSOR && !string.IsNullOrEmpty(map.Icon))
                     {
-                        discovery.Icon = map.Icon;
+                        discovery = discovery with
+                        {
+                            Icon = map.Icon,
+                        };
                     }
                     else if (map.Type == Const.BINARY_SENSOR && !string.IsNullOrEmpty(map.Icon))
                     {
-                        discovery.DeviceClass = map.Icon;
+                        discovery = discovery with
+                        {
+                            DeviceClass = map.Icon,
+                        };
                     }
 
                     discoveries.Add((input.Slug, map.Sensor, map.Type, discovery));

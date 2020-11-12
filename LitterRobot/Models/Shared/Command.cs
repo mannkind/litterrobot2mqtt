@@ -1,11 +1,11 @@
-using TwoMQTT.Core.Models;
+using TwoMQTT.Models;
 
 namespace LitterRobot.Models.Shared
 {
     /// <summary>
     /// The shared command across the application
     /// </summary>
-    public class Command : SharedCommand<Resource>
+    public record Command : SharedCommand<Resource>
     {
     }
 }

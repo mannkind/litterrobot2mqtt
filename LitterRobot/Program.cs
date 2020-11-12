@@ -9,10 +9,10 @@ using Microsoft.Extensions.Options;
 using LitterRobot.DataAccess;
 using LitterRobot.Liasons;
 using LitterRobot.Models.Shared;
-using TwoMQTT.Core;
-using TwoMQTT.Core.Extensions;
-using TwoMQTT.Core.Interfaces;
-using TwoMQTT.Core.Managers;
+using TwoMQTT;
+using TwoMQTT.Extensions;
+using TwoMQTT.Interfaces;
+using TwoMQTT.Managers;
 using System;
 
 namespace LitterRobot
@@ -48,7 +48,7 @@ namespace LitterRobot
                 .AddMemoryCache()
                 .ConfigureOpts<Models.Options.SharedOpts>(hostContext, Models.Options.SharedOpts.Section)
                 .ConfigureOpts<Models.Options.SourceOpts>(hostContext, Models.Options.SourceOpts.Section)
-                .ConfigureOpts<TwoMQTT.Core.Models.MQTTManagerOptions>(hostContext, Models.Options.MQTTOpts.Section)
+                .ConfigureOpts<TwoMQTT.Models.MQTTManagerOptions>(hostContext, Models.Options.MQTTOpts.Section)
                 .AddSingleton<IThrottleManager, ThrottleManager>(x =>
                 {
                     var opts = x.GetService<IOptions<Models.Options.SourceOpts>>();
