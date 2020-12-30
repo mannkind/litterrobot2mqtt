@@ -1,9 +1,9 @@
 # litterrobot2mqtt
 
 [![Software
-License](https://img.shields.io/badge/License-MIT-orange.svg?style=flat-square)](https://github.com/mannkind/litterrobot2mqtt/blob/master/LICENSE.md)
+License](https://img.shields.io/badge/License-MIT-orange.svg?style=flat-square)](https://github.com/mannkind/litterrobot2mqtt/blob/main/LICENSE.md)
 [![Build Status](https://github.com/mannkind/litterrobot2mqtt/workflows/Main%20Workflow/badge.svg)](https://github.com/mannkind/litterrobot2mqtt/actions)
-[![Coverage Status](https://img.shields.io/codecov/c/github/mannkind/litterrobot2mqtt/master.svg)](http://codecov.io/github/mannkind/litterrobot2mqtt?branch=master)
+[![Coverage Status](https://img.shields.io/codecov/c/github/mannkind/litterrobot2mqtt/main.svg)](http://codecov.io/github/mannkind/litterrobot2mqtt?branch=main)
 
 An experiment to publish Litter Robot statuses to MQTT.
 
