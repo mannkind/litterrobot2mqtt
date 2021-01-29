@@ -62,7 +62,7 @@ namespace LitterRobot.DataAccess
                     JsonException => "Unable to deserialize response from the Litter Robot API",
                     _ => "Unable to send to the Litter Robot API"
                 };
-                this.Logger.LogError(msg, e);
+                this.Logger.LogError(msg + "; {exception}", e);
                 return null;
             }
         }

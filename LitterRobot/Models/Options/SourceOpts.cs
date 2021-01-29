@@ -25,6 +25,6 @@ namespace LitterRobot.Models.Options
         /// 
         /// </summary>
         /// <returns></returns>
-        public TimeSpan PollingInterval { get; init; } = new TimeSpan(0, 0, 31);
+        public TimeSpan PollingInterval { get; init; } = new(0, 0, 31);
     }
 }

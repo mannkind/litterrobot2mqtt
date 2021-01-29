@@ -128,7 +128,5 @@ namespace LitterRobot.Models.Shared
         /// 
         /// </summary>
         public const string CC = "CC";
-
-        public override string ToString() => $"LitterRobotId: {this.LitterRobotId}; State: {this.UnitStatusText}";
     }
 }

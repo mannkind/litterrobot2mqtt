@@ -138,8 +138,5 @@ namespace LitterRobot.Models.Source
         /// </summary>
         /// <value></value>
         public string SleepModeActive { get; init; } = string.Empty;
-
-        /// <inheritdoc />
-        public override string ToString() => $"LitterRobotID: {this.LitterRobotId}, Status: {this.UnitStatus}";
     }
 }

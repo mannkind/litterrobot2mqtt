@@ -16,8 +16,5 @@ namespace LitterRobot.Models.Shared
         /// </summary>
         /// <value></value>
         public string Slug { get; init; } = string.Empty;
-
-        /// <inheritdoc />
-        public override string ToString() => $"LRID: {this.LRID}, Slug: {this.Slug}";
     }
 }

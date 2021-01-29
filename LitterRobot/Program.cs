@@ -17,75 +17,42 @@ using System;
 
 namespace LitterRobot
 {
-    class Program : ConsoleProgram<Resource, Command, SourceLiason, MQTTLiason>
+    class Program
     {
-        static async Task Main(string[] args)
-        {
-            var p = new Program();
-            await p.ExecuteAsync(args);
-        }
-
-        /// <inheritdoc />
-        protected override IDictionary<string, string> EnvironmentDefaults()
-        {
-            var sep = "__";
-            var section = Models.Options.MQTTOpts.Section.Replace(":", sep);
-            var sectsep = $"{section}{sep}";
-
-            return new Dictionary<string, string>
-            {
-                { $"{sectsep}{nameof(Models.Options.MQTTOpts.TopicPrefix)}", Models.Options.MQTTOpts.TopicPrefixDefault },
-                { $"{sectsep}{nameof(Models.Options.MQTTOpts.DiscoveryName)}", Models.Options.MQTTOpts.DiscoveryNameDefault },
-            };
-        }
-
-        /// <inheritdoc />
-        protected override IServiceCollection ConfigureServices(HostBuilderContext hostContext, IServiceCollection services)
-        {
-            services.AddHttpClient<ISourceDAO>();
-
-            return services
-                .AddMemoryCache()
-                .ConfigureOpts<Models.Options.SharedOpts>(hostContext, Models.Options.SharedOpts.Section)
-                .ConfigureOpts<Models.Options.SourceOpts>(hostContext, Models.Options.SourceOpts.Section)
-                .ConfigureOpts<TwoMQTT.Models.MQTTManagerOptions>(hostContext, Models.Options.MQTTOpts.Section)
-                .AddSingleton<IThrottleManager, ThrottleManager>(x =>
+        static async Task Main(string[] args) => await ConsoleProgram<Resource, Command, SourceLiason, MQTTLiason>.
+            ExecuteAsync(args,
+                envs: new Dictionary<string, string>()
                 {
-                    var opts = x.GetService<IOptions<Models.Options.SourceOpts>>();
-                    if (opts == null)
                     {
-                        throw new ArgumentException($"{nameof(opts.Value.PollingInterval)} is required for {nameof(ThrottleManager)}.");
-                    }
-
-                    return new ThrottleManager(opts.Value.PollingInterval);
-                })
-                .AddSingleton<ISourceDAO>(x =>
+                        $"{Models.Options.MQTTOpts.Section}:{nameof(Models.Options.MQTTOpts.TopicPrefix)}",
+                        Models.Options.MQTTOpts.TopicPrefixDefault
+                    },
+                    {
+                        $"{Models.Options.MQTTOpts.Section}:{nameof(Models.Options.MQTTOpts.DiscoveryName)}",
+                        Models.Options.MQTTOpts.DiscoveryNameDefault
+                    },
+                },
+                configureServices: (HostBuilderContext context, IServiceCollection services) =>
                 {
-                    var logger = x.GetService<ILogger<SourceDAO>>();
-                    var httpClientFactory = x.GetService<IHttpClientFactory>();
-                    var cache = x.GetService<IMemoryCache>();
-                    var opts = x.GetService<IOptions<Models.Options.SourceOpts>>();
-
-                    if (logger == null)
-                    {
-                        throw new ArgumentException($"{nameof(logger)} is required for {nameof(SourceDAO)}.");
-                    }
-                    if (httpClientFactory == null)
-                    {
-                        throw new ArgumentException($"{nameof(httpClientFactory)} is required for {nameof(SourceDAO)}.");
-                    }
-                    if (cache == null)
-                    {
-                        throw new ArgumentException($"{nameof(cache)} is required for {nameof(SourceDAO)}.");
-                    }
-                    if (opts == null)
-                    {
-                        throw new ArgumentException($"{nameof(opts.Value.Login)} and {nameof(opts.Value.Password)} are required for {nameof(SourceDAO)}.");
-                    }
-
-                    return new SourceDAO(logger, httpClientFactory, cache, opts.Value.Login, opts.Value.Password
-                    );
+                    services
+                        .AddHttpClient()
+                        .AddMemoryCache()
+                        .AddOptions<Models.Options.SharedOpts>(Models.Options.SharedOpts.Section, context.Configuration)
+                        .AddOptions<Models.Options.SourceOpts>(Models.Options.SourceOpts.Section, context.Configuration)
+                        .AddOptions<TwoMQTT.Models.MQTTManagerOptions>(Models.Options.MQTTOpts.Section, context.Configuration)
+                        .AddSingleton<IThrottleManager, ThrottleManager>(x =>
+                        {
+                            var opts = x.GetRequiredService<IOptions<Models.Options.SourceOpts>>();
+                            return new ThrottleManager(opts.Value.PollingInterval);
+                        })
+                        .AddSingleton<ISourceDAO>(x =>
+                        {
+                            var logger = x.GetRequiredService<ILogger<SourceDAO>>();
+                            var httpClientFactory = x.GetRequiredService<IHttpClientFactory>();
+                            var cache = x.GetRequiredService<IMemoryCache>();
+                            var opts = x.GetRequiredService<IOptions<Models.Options.SourceOpts>>();
+                            return new SourceDAO(logger, httpClientFactory, cache, opts.Value.Login, opts.Value.Password);
+                        });
                 });
-        }
     }
 }
