@@ -18,7 +18,7 @@ namespace LitterRobot.Liasons
     /// <summary>
     /// An class representing a managed way to interact with a source.
     /// </summary>
-    public class SourceLiason : SourceLiasonBase<Resource, Command, SlugMapping, ISourceDAO, SharedOpts>, ISourceLiason<Resource, Command>
+    public class SourceLiason : PollingSourceLiasonBase<Resource, SlugMapping, ISourceDAO, SharedOpts>, ISourceLiason<Resource, Command>
     {
         public SourceLiason(ILogger<SourceLiason> logger, ISourceDAO sourceDAO,
             IOptions<Models.Options.SourceOpts> opts, IOptions<Models.Options.SharedOpts> sharedOpts) :

@@ -17,7 +17,7 @@ using TwoMQTT.Interfaces;
 
 namespace LitterRobot.DataAccess
 {
-    public interface ISourceDAO : ISourceDAO<SlugMapping, Response, Command, object>
+    public interface ISourceDAO : IPollingSourceDAO<SlugMapping, Response, Command, object>
     {
     }
 

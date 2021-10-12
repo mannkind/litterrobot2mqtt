@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using LitterRobot.DataAccess;
 using LitterRobot.Liasons;
 using LitterRobot.Models.Options;
 using LitterRobot.Models.Shared;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 
 namespace LitterRobotTest.Liasons
 {
@@ -46,7 +46,7 @@ namespace LitterRobotTest.Liasons
                      });
 
                 var sourceLiason = new SourceLiason(logger.Object, sourceDAO.Object, opts, sharedOpts);
-                await foreach (var result in sourceLiason.FetchAllAsync())
+                await foreach (var result in sourceLiason.ReceiveDataAsync())
                 {
                     Assert.AreEqual(test.Expected.LRID, result.LitterRobotId);
                     Assert.AreEqual(test.Expected.UnitStatus, result.UnitStatus);
