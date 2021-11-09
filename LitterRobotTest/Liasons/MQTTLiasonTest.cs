@@ -1,23 +1,23 @@
+using System;
 using System.Linq;
+using LitterRobot.Liasons;
+using LitterRobot.Models.Options;
+using LitterRobot.Models.Shared;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using TwoMQTT.Utils;
-using LitterRobot.Liasons;
-using LitterRobot.Models.Options;
-using LitterRobot.Models.Shared;
-using System;
+using TwoMQTT.Interfaces;
 
-namespace LitterRobotTest.Liasons
+namespace LitterRobotTest.Liasons;
+
+[TestClass]
+public class MQTTLiasonTest
 {
-    [TestClass]
-    public class MQTTLiasonTest
+    [TestMethod]
+    public void MapDataTest()
     {
-        [TestMethod]
-        public void MapDataTest()
-        {
-            var tests = new[] {
+        var tests = new[] {
                 new {
                     Q = new SlugMapping { LRID = BasicLRID, Slug = BasicSlug },
                     Resource = new Resource { LitterRobotId = BasicLRID, UnitStatus = BasicUnitStatus },
@@ -30,37 +30,37 @@ namespace LitterRobotTest.Liasons
                 },
             };
 
-            foreach (var test in tests)
+        foreach (var test in tests)
+        {
+            var logger = new Mock<ILogger<MQTTLiason>>();
+            var generator = new Mock<IMQTTGenerator>();
+            var sharedOpts = Options.Create(new SharedOpts
             {
-                var logger = new Mock<ILogger<MQTTLiason>>();
-                var generator = new Mock<IMQTTGenerator>();
-                var sharedOpts = Options.Create(new SharedOpts
-                {
-                    Resources = new[] { test.Q }.ToList(),
-                });
+                Resources = new[] { test.Q }.ToList(),
+            });
 
-                generator.Setup(x => x.BuildDiscovery(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<System.Reflection.AssemblyName>(), false))
-                    .Returns(new TwoMQTT.Models.MQTTDiscovery());
-                generator.Setup(x => x.StateTopic(test.Q.Slug, nameof(Resource.UnitStatus)))
-                    .Returns($"totes/{test.Q.Slug}/topic/{nameof(Resource.UnitStatus)}");
+            generator.Setup(x => x.BuildDiscovery(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<System.Reflection.AssemblyName>(), false))
+                .Returns(new TwoMQTT.Models.MQTTDiscovery());
+            generator.Setup(x => x.StateTopic(test.Q.Slug, nameof(Resource.UnitStatus)))
+                .Returns($"totes/{test.Q.Slug}/topic/{nameof(Resource.UnitStatus)}");
 
-                var mqttLiason = new MQTTLiason(logger.Object, generator.Object, sharedOpts);
-                var results = mqttLiason.MapData(test.Resource);
-                var actual = results.Where(x => x.topic != null).FirstOrDefault(x => x.topic.Contains(nameof(Resource.UnitStatus)));
+            var mqttLiason = new MQTTLiason(logger.Object, generator.Object, sharedOpts);
+            var results = mqttLiason.MapData(test.Resource);
+            var actual = results.Where(x => x.topic != null).FirstOrDefault(x => x.topic.Contains(nameof(Resource.UnitStatus)));
 
-                Assert.AreEqual(test.Expected.Found, results.Any(), "The mapping should exist if found.");
-                if (test.Expected.Found)
-                {
-                    Assert.IsTrue(actual.topic.Contains(test.Expected.Slug), "The topic should contain the expected LRID.");
-                    Assert.AreEqual(test.Expected.UnitStatus, actual.payload, "The payload be the expected UnitStatus.");
-                }
+            Assert.AreEqual(test.Expected.Found, results.Any(), "The mapping should exist if found.");
+            if (test.Expected.Found)
+            {
+                Assert.IsTrue(actual.topic.Contains(test.Expected.Slug), "The topic should contain the expected LRID.");
+                Assert.AreEqual(test.Expected.UnitStatus, actual.payload, "The payload be the expected UnitStatus.");
             }
         }
+    }
 
-        [TestMethod]
-        public void DiscoveriesTest()
-        {
-            var tests = new[] {
+    [TestMethod]
+    public void DiscoveriesTest()
+    {
+        var tests = new[] {
                 new {
                     Q = new SlugMapping { LRID = BasicLRID, Slug = BasicSlug },
                     Resource = new Resource { LitterRobotId = BasicLRID, UnitStatus = BasicUnitStatus },
@@ -68,28 +68,27 @@ namespace LitterRobotTest.Liasons
                 },
             };
 
-            foreach (var test in tests)
+        foreach (var test in tests)
+        {
+            var logger = new Mock<ILogger<MQTTLiason>>();
+            var generator = new Mock<IMQTTGenerator>();
+            var sharedOpts = Options.Create(new SharedOpts
             {
-                var logger = new Mock<ILogger<MQTTLiason>>();
-                var generator = new Mock<IMQTTGenerator>();
-                var sharedOpts = Options.Create(new SharedOpts
-                {
-                    Resources = new[] { test.Q }.ToList(),
-                });
+                Resources = new[] { test.Q }.ToList(),
+            });
 
-                generator.Setup(x => x.BuildDiscovery(test.Q.Slug, It.IsAny<string>(), It.IsAny<System.Reflection.AssemblyName>(), false))
-                    .Returns(new TwoMQTT.Models.MQTTDiscovery());
+            generator.Setup(x => x.BuildDiscovery(test.Q.Slug, It.IsAny<string>(), It.IsAny<System.Reflection.AssemblyName>(), false))
+                .Returns(new TwoMQTT.Models.MQTTDiscovery());
 
-                var mqttLiason = new MQTTLiason(logger.Object, generator.Object, sharedOpts);
-                var results = mqttLiason.Discoveries();
-                var result = results.FirstOrDefault(x => x.sensor == nameof(Resource.UnitStatus));
+            var mqttLiason = new MQTTLiason(logger.Object, generator.Object, sharedOpts);
+            var results = mqttLiason.Discoveries();
+            var result = results.FirstOrDefault(x => x.sensor == nameof(Resource.UnitStatus));
 
-                Assert.IsNotNull(result, "A discovery should exist.");
-            }
+            Assert.IsNotNull(result, "A discovery should exist.");
         }
-
-        private static string BasicSlug = "totallyaslug";
-        private static string BasicUnitStatus = "Rdy";
-        private static string BasicLRID = "15873525";
     }
+
+    private static string BasicSlug = "totallyaslug";
+    private static string BasicUnitStatus = "Rdy";
+    private static string BasicLRID = "15873525";
 }

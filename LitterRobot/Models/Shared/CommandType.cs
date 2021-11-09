@@ -1,16 +1,15 @@
-namespace LitterRobot.Models.Shared
+namespace LitterRobot.Models.Shared;
+
+/// <summary>
+/// 
+/// </summary>
+public enum CommandType
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    public enum CommandType
-    {
-        None,
-        Power,
-        Cycle,
-        NightLight,
-        PanelLock,
-        WaitTime,
-        Sleep,
-    }
+    None,
+    Power,
+    Cycle,
+    NightLight,
+    PanelLock,
+    WaitTime,
+    Sleep,
 }
