@@ -27,6 +27,7 @@ public class MQTTLiason : MQTTLiasonBase<Resource, Command, SlugMapping, SharedO
     public MQTTLiason(ILogger<MQTTLiason> logger, IMQTTGenerator generator, IOptions<SharedOpts> sharedOpts) :
         base(logger, generator, sharedOpts)
     {
+        this.DataReceivedExpiration = sharedOpts.Value.DataReceivedExpiration;
     }
 
     /// <inheritdoc />
@@ -47,18 +48,20 @@ public class MQTTLiason : MQTTLiasonBase<Resource, Command, SlugMapping, SharedO
         this.Logger.LogDebug("Found slug {slug} for incoming data for {litterRobotId}", slug, input.LitterRobotId);
         results.AddRange(new[]
             {
-                        (this.Generator.StateTopic(slug, nameof(Resource.LitterRobotId)), input.LitterRobotId),
-                        (this.Generator.StateTopic(slug, nameof(Resource.PowerStatus)), input.PowerStatus),
-                        (this.Generator.StateTopic(slug, nameof(Resource.UnitStatus)), input.UnitStatus),
-                        (this.Generator.StateTopic(slug, nameof(Resource.UnitStatusText)), input.UnitStatusText),
-                        (this.Generator.StateTopic(slug, nameof(Resource.Power)), this.Generator.BooleanOnOff(input.Power)),
-                        (this.Generator.StateTopic(slug, nameof(Resource.Cycle)), this.Generator.BooleanOnOff(input.Cycle)),
-                        (this.Generator.StateTopic(slug, nameof(Resource.NightLightActive)), this.Generator.BooleanOnOff(input.NightLightActive)),
-                        (this.Generator.StateTopic(slug, nameof(Resource.PanelLockActive)), this.Generator.BooleanOnOff(input.PanelLockActive)),
-                        (this.Generator.StateTopic(slug, nameof(Resource.DFITriggered)), this.Generator.BooleanOnOff(input.DFITriggered)),
-                        (this.Generator.StateTopic(slug, nameof(Resource.SleepModeActive)), this.Generator.BooleanOnOff(input.SleepModeActive)),
-                        (this.Generator.StateTopic(slug, nameof(Resource.SleepMode)), input.SleepMode),
-                }
+                this.Generator.DataReceivedTopicPayload(slug),
+                
+                (this.Generator.StateTopic(slug, nameof(Resource.LitterRobotId)), input.LitterRobotId),
+                (this.Generator.StateTopic(slug, nameof(Resource.PowerStatus)), input.PowerStatus),
+                (this.Generator.StateTopic(slug, nameof(Resource.UnitStatus)), input.UnitStatus),
+                (this.Generator.StateTopic(slug, nameof(Resource.UnitStatusText)), input.UnitStatusText),
+                (this.Generator.StateTopic(slug, nameof(Resource.Power)), this.Generator.BooleanOnOff(input.Power)),
+                (this.Generator.StateTopic(slug, nameof(Resource.Cycle)), this.Generator.BooleanOnOff(input.Cycle)),
+                (this.Generator.StateTopic(slug, nameof(Resource.NightLightActive)), this.Generator.BooleanOnOff(input.NightLightActive)),
+                (this.Generator.StateTopic(slug, nameof(Resource.PanelLockActive)), this.Generator.BooleanOnOff(input.PanelLockActive)),
+                (this.Generator.StateTopic(slug, nameof(Resource.DFITriggered)), this.Generator.BooleanOnOff(input.DFITriggered)),
+                (this.Generator.StateTopic(slug, nameof(Resource.SleepModeActive)), this.Generator.BooleanOnOff(input.SleepModeActive)),
+                (this.Generator.StateTopic(slug, nameof(Resource.SleepMode)), input.SleepMode),
+            }
         );
 
         return results;
@@ -192,21 +195,23 @@ public class MQTTLiason : MQTTLiasonBase<Resource, Command, SlugMapping, SharedO
         var assembly = Assembly.GetAssembly(typeof(Program))?.GetName() ?? new AssemblyName();
         var mapping = new[]
         {
-                new { Sensor = nameof(Resource.LitterRobotId), Type = Const.SENSOR, Icon = "mdi:identifier" },
-                new { Sensor = nameof(Resource.PowerStatus), Type = Const.SENSOR, Icon = "mdi:power-settings" },
-                new { Sensor = nameof(Resource.UnitStatus), Type = Const.SENSOR, Icon = "mdi:robot" },
-                new { Sensor = nameof(Resource.UnitStatusText), Type = Const.SENSOR, Icon = "mdi:robot" },
-                new { Sensor = nameof(Resource.Power), Type = Const.SWITCH, Icon = "mdi:power" },
-                new { Sensor = nameof(Resource.Cycle), Type = Const.SWITCH, Icon = "mdi:rotate-left" },
-                new { Sensor = nameof(Resource.NightLightActive), Type = Const.SWITCH, Icon = "mdi:lightbulb" },
-                new { Sensor = nameof(Resource.PanelLockActive), Type = Const.SWITCH, Icon = "mdi:lock" },
-                new { Sensor = nameof(Resource.DFITriggered), Type = Const.BINARY_SENSOR, Icon = "problem" },
-                new { Sensor = nameof(Resource.SleepModeActive), Type = Const.SWITCH, Icon = "mdi:sleep" },
-                new { Sensor = nameof(Resource.SleepMode), Type = Const.SENSOR, Icon = "mdi:sleep" },
-            };
+            new { Sensor = nameof(Resource.LitterRobotId), Type = Const.SENSOR, Icon = "mdi:identifier" },
+            new { Sensor = nameof(Resource.PowerStatus), Type = Const.SENSOR, Icon = "mdi:power-settings" },
+            new { Sensor = nameof(Resource.UnitStatus), Type = Const.SENSOR, Icon = "mdi:robot" },
+            new { Sensor = nameof(Resource.UnitStatusText), Type = Const.SENSOR, Icon = "mdi:robot" },
+            new { Sensor = nameof(Resource.Power), Type = Const.SWITCH, Icon = "mdi:power" },
+            new { Sensor = nameof(Resource.Cycle), Type = Const.SWITCH, Icon = "mdi:rotate-left" },
+            new { Sensor = nameof(Resource.NightLightActive), Type = Const.SWITCH, Icon = "mdi:lightbulb" },
+            new { Sensor = nameof(Resource.PanelLockActive), Type = Const.SWITCH, Icon = "mdi:lock" },
+            new { Sensor = nameof(Resource.DFITriggered), Type = Const.BINARY_SENSOR, Icon = "problem" },
+            new { Sensor = nameof(Resource.SleepModeActive), Type = Const.SWITCH, Icon = "mdi:sleep" },
+            new { Sensor = nameof(Resource.SleepMode), Type = Const.SENSOR, Icon = "mdi:sleep" },
+        };
 
         foreach (var input in this.Questions)
         {
+            discoveries.Add(this.Generator.DataReceivedDiscovery(input.Slug, assembly, this.DataReceivedExpiration));
+
             foreach (var map in mapping)
             {
                 this.Logger.LogDebug("Generating discovery for {litterRobotId} - {sensor}", input.LRID, map.Sensor);
@@ -240,4 +245,9 @@ public class MQTTLiason : MQTTLiasonBase<Resource, Command, SlugMapping, SharedO
 
         return discoveries;
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    private readonly TimeSpan DataReceivedExpiration;
 }
