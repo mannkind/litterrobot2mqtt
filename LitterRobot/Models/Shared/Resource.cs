@@ -118,6 +118,12 @@ public record Resource
     /// </summary>
     /// <value></value>
     public long CleanCycleWaitTimeMinutes { get; init; } = long.MinValue;
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <value></value>
+    public System.DateTimeOffset LastSeen { get; init; } = System.DateTime.MinValue;
 
     /// <summary>
     ///  
