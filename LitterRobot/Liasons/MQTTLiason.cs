@@ -62,6 +62,8 @@ public class MQTTLiason : MQTTLiasonBase<Resource, Command, SlugMapping, SharedO
                 (this.Generator.StateTopic(slug, nameof(Resource.DFITriggered)), this.Generator.BooleanOnOff(input.DFITriggered)),
                 (this.Generator.StateTopic(slug, nameof(Resource.SleepModeActive)), this.Generator.BooleanOnOff(input.SleepModeActive)),
                 (this.Generator.StateTopic(slug, nameof(Resource.SleepMode)), input.SleepMode),
+                (this.Generator.StateTopic(slug, nameof(Resource.LastSeen)), input.LastSeen.ToString("o")),
+                (this.Generator.StateTopic(slug, nameof(Resource.CleanCycleWaitTimeMinutes)), ((int)input.CleanCycleWaitTimeMinutes).ToString()),
             }
         );
 
@@ -207,6 +209,8 @@ public class MQTTLiason : MQTTLiasonBase<Resource, Command, SlugMapping, SharedO
             new { Sensor = nameof(Resource.DFITriggered), Type = Const.BINARY_SENSOR, Icon = "problem" },
             new { Sensor = nameof(Resource.SleepModeActive), Type = Const.SWITCH, Icon = "mdi:sleep" },
             new { Sensor = nameof(Resource.SleepMode), Type = Const.SENSOR, Icon = "mdi:sleep" },
+            new { Sensor = nameof(Resource.LastSeen), Type = Const.SENSOR, Icon = "mdi:date" },
+            new { Sensor = nameof(Resource.CleanCycleWaitTimeMinutes), Type = Const.SELECT, Icon = "mdi:clock" },
         };
 
         foreach (var input in this.Questions)
@@ -237,6 +241,21 @@ public class MQTTLiason : MQTTLiasonBase<Resource, Command, SlugMapping, SharedO
                     discovery = discovery with
                     {
                         DeviceClass = map.Icon,
+                    };
+                }
+
+                if (map.Type == Const.SELECT)
+                {
+                    discovery = discovery with
+                    {
+                        Icon = string.Empty,
+                        CommandTopic = this.Generator.CommandTopic(input.Slug, map.Sensor),
+                        Options = new List<string>
+                        {
+                            "3",
+                            "7",
+                            "15",
+                        }
                     };
                 }
 

@@ -122,6 +122,7 @@ public class SourceLiason : PollingSourceLiasonBase<Resource, SlugMapping, ISour
             CycleCapacity = src.CycleCapacity,
             CyclesAfterDrawerFull = src.CyclesAfterDrawerFull,
             DFICycleCount = src.DFICycleCount,
+            LastSeen = src.LastSeen,
         };
     }
 }
