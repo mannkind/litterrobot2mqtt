@@ -206,7 +206,7 @@ public class MQTTLiason : MQTTLiasonBase<Resource, Command, SlugMapping, SharedO
             new { Sensor = nameof(Resource.Cycle), Type = Const.SWITCH, Icon = "mdi:rotate-left" },
             new { Sensor = nameof(Resource.NightLightActive), Type = Const.SWITCH, Icon = "mdi:lightbulb" },
             new { Sensor = nameof(Resource.PanelLockActive), Type = Const.SWITCH, Icon = "mdi:lock" },
-            new { Sensor = nameof(Resource.DFITriggered), Type = Const.BINARY_SENSOR, Icon = "mdi:problem" },
+            new { Sensor = nameof(Resource.DFITriggered), Type = Const.BINARY_SENSOR, Icon = "problem" },
             new { Sensor = nameof(Resource.SleepModeActive), Type = Const.SWITCH, Icon = "mdi:sleep" },
             new { Sensor = nameof(Resource.SleepMode), Type = Const.SENSOR, Icon = "mdi:sleep" },
             new { Sensor = nameof(Resource.LastSeen), Type = Const.SENSOR, Icon = "mdi:date" },
